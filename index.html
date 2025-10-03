@@ -142,7 +142,7 @@
         <button id="export" disabled>Exportar anonimizado</button>
         <select id="exportMode" aria-label="Formato de exportación" disabled style="min-width:12rem">
           <option value="pdf">PDF anonimizado</option>
-          <option value="zip">ZIP con una página por PNG</option>
+          <option value="zip">ZIP con un PNG por página</option>
           <option value="png">Imagen PNG anonimizada</option>
         </select>
         <a id="dlLink" download style="display:none"></a>
@@ -710,7 +710,7 @@
       if (type === 'pdf') {
         optionList = [
           { value: 'pdf', label: 'PDF anonimizado' },
-          { value: 'zip', label: 'ZIP con una página por PNG' }
+          { value: 'zip', label: 'ZIP con un PNG por página' }
         ];
         if (pageCount > 1) {
           optionList.push({ value: 'png-single', label: 'PNG con todas las páginas' });
