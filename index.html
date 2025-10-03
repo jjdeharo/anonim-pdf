@@ -17,6 +17,9 @@
     main { display: grid; grid-template-columns: 360px 1fr; gap: 1rem; padding: 1rem; transition: grid-template-columns .35s ease; }
     @media (max-width: 900px){ main { grid-template-columns: 1fr; } }
     .panel { border: 1px solid #8884; border-radius: .75rem; padding: .75rem; background: color-mix(in srgb, canvas 96%, canvastext 4%); }
+    .langSelector { margin-left: auto; display: flex; align-items: center; gap: .4rem; font-size: .9rem; }
+    .langSelector span { font-weight: 600; }
+    .langSelector select { padding: .4rem .6rem; border-radius: .5rem; min-width: 7rem; }
     .row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
     button, input[type="number"], input[type="file"], select { padding: .5rem .6rem; border-radius: .5rem; border: 1px solid #8884; background: inherit; }
     button { cursor: pointer; }
@@ -93,7 +96,17 @@
 <body>
   <header class="row">
     <img src="./favicon.svg" alt="" width="32" height="32" aria-hidden="true" />
-    <strong>Anonimizador de PDF e imágenes</strong>
+    <strong data-i18n="app.headerTitle">Anonimizador de PDF e imágenes</strong>
+    <label for="languageSelect" class="langSelector">
+      <span data-i18n="lang.label">Idioma</span>
+      <select id="languageSelect">
+        <option value="es">Español</option>
+        <option value="ca">Català</option>
+        <option value="gl">Galego</option>
+        <option value="eu">Euskara</option>
+        <option value="en">English</option>
+      </select>
+    </label>
   </header>
 
   <main>
@@ -109,63 +122,75 @@
             <path d="M10 8l4 4-4 4" />
           </svg>
         </button>
-        <button id="openProfModal" class="infoLink panelInfoLink" type="button">Aviso importante</button>
+        <button id="openProfModal" class="infoLink panelInfoLink" type="button" data-i18n="info.noticeButton">Aviso importante</button>
         <div id="fileDrop" class="fileDrop">
           <input id="file" class="fileDropInput" type="file" accept="application/pdf,image/*" />
-          <span>Arrastra un PDF o imagen o haz clic para abrirlo</span>
+          <span data-i18n="drop.default">Arrastra un PDF o imagen o haz clic para abrirlo</span>
         </div>
       </div>
       <div class="row" style="margin-bottom:.5rem; justify-content:flex-start">
-        <div><span>Página </span><span id="pageNum">-</span><span> / </span><span id="pageCount">-</span></div>
+        <div><span data-i18n="status.page">Página</span> <span id="pageNum">-</span><span> / </span><span id="pageCount">-</span></div>
       </div>
       <fieldset class="rectSettings" style="margin-bottom:.75rem">
-        <legend>Uso</legend>
-        <p class="muted" style="margin:0">Arrastra con el ratón para definir rectángulos sobre el nombre. Selecciona con el botón derecho para aplicar el mismo rectángulo a todas las páginas del PDF. Doble clic borra el último rectángulo.</p>
+        <legend data-i18n="controls.usage.title">Uso</legend>
+        <p class="muted" style="margin:0" data-i18n="controls.usage.help">Arrastra con el ratón para definir rectángulos sobre el nombre. Selecciona con el botón derecho para aplicar el mismo rectángulo a todas las páginas del PDF. Doble clic borra el último rectángulo.</p>
       </fieldset>
       <fieldset class="rectSettings">
-        <legend>Dibujo del rectángulo</legend>
+        <legend data-i18n="controls.rect.title">Dibujo del rectángulo</legend>
         <div class="rectControls">
-          <label>Grosor del borde: <input id="strokeW" type="number" min="1" max="8" value="2" style="width:4.5rem" /></label>
+          <label>
+            <span data-i18n="controls.rect.stroke">Grosor del borde:</span>
+            <input id="strokeW" type="number" min="1" max="8" value="2" style="width:4.5rem" />
+          </label>
           <div class="rectStack">
-            <label>Opacidad tapa: <input id="opacity" type="number" min="0.1" max="1" step="0.1" value="1" style="width:4.5rem" /></label>
+            <label>
+              <span data-i18n="controls.rect.opacity">Opacidad tapa:</span>
+              <input id="opacity" type="number" min="0.1" max="1" step="0.1" value="1" style="width:4.5rem" />
+            </label>
           </div>
-          <select id="maskColor" title="Color de la máscara">
-            <option value="#000000" selected>Negro</option>
-            <option value="#ffffff">Blanco</option>
-            <option value="#888888">Gris</option>
+          <select id="maskColor" title="Color de la máscara" data-i18n-attr-title="controls.rect.colorTitle">
+            <option value="#000000" selected data-i18n="controls.rect.color.black">Negro</option>
+            <option value="#ffffff" data-i18n="controls.rect.color.white">Blanco</option>
+            <option value="#888888" data-i18n="controls.rect.color.gray">Gris</option>
           </select>
         </div>
       </fieldset>
-      <button id="btnClearRects" disabled style="margin-bottom:.75rem">Limpiar rectángulos de esta página</button>
+      <button id="btnClearRects" disabled style="margin-bottom:.75rem" data-i18n="controls.clearButton">Limpiar rectángulos de esta página</button>
       <fieldset class="namingField" style="margin-bottom:.75rem">
-        <legend>Nombre del archivo exportado</legend>
-        <label><input type="radio" name="namingOption" value="derived" checked>Mismo nombre + _anonim</label>
-        <label><input type="radio" name="namingOption" value="fixed">anonim.pdf</label>
+        <legend data-i18n="naming.legend">Nombre del archivo exportado</legend>
+        <label>
+          <input type="radio" name="namingOption" value="derived" checked />
+          <span data-i18n="naming.option.derived">Mismo nombre + _anonim</span>
+        </label>
+        <label>
+          <input type="radio" name="namingOption" value="fixed" />
+          <span data-i18n="naming.option.fixed">anonim.pdf</span>
+        </label>
       </fieldset>
       <div class="row" style="margin-bottom:.5rem">
-        <button id="export" disabled>Exportar anonimizado</button>
-        <select id="exportMode" aria-label="Formato de exportación" disabled style="min-width:12rem">
-          <option value="pdf">PDF anonimizado</option>
-          <option value="zip">ZIP con un PNG por página</option>
-          <option value="png">Imagen PNG anonimizada</option>
+        <button id="export" disabled data-i18n="export.button.default">Exportar anonimizado</button>
+        <select id="exportMode" aria-label="Formato de exportación" disabled style="min-width:12rem" data-i18n-attr-aria-label="export.selector.label">
+          <option value="pdf" data-i18n="export.mode.pdf">PDF anonimizado</option>
+          <option value="zip" data-i18n="export.mode.zip">ZIP con un PNG por página</option>
+          <option value="png" data-i18n="export.mode.pngImage">Imagen PNG anonimizada</option>
         </select>
         <a id="dlLink" download style="display:none"></a>
       </div>
       <p id="exportNotice" class="muted" style="display:none; margin-top:-.25rem; margin-bottom:.75rem;"></p>
       <details>
-        <summary>Notas sobre seguridad del anonimizado</summary>
+        <summary data-i18n="details.security.title">Notas sobre seguridad del anonimizado</summary>
         <ul>
-          <li>La exportación genera un PDF de imágenes (rasterizado). El texto original desaparece: ya no es seleccionable ni extraíble como texto.</li>
-          <li>Esto es adecuado para ocultar nombres propios de trabajos entregados, con la contrapartida de mayor tamaño y pérdida de accesibilidad.</li>
-          <li>Uso totalmente local en tu navegador.</li>
+          <li data-i18n="details.security.item1">La exportación genera un PDF de imágenes (rasterizado). El texto original desaparece: ya no es seleccionable ni extraíble como texto.</li>
+          <li data-i18n="details.security.item2">Esto es adecuado para ocultar nombres propios de trabajos entregados, con la contrapartida de mayor tamaño y pérdida de accesibilidad.</li>
+          <li data-i18n="details.security.item3">Uso totalmente local en tu navegador.</li>
         </ul>
       </details>
 
       <details>
-        <summary>Créditos y soporte</summary>
-        <p class="muted">¿Dudas o sugerencias? Pulsa el botón verde <a href="https://github.com/jjdeharo/anonim-pdf/issues" style="color:inherit; text-decoration:underline;">New issue</a> en GitHub.</p>
-        <p class="muted">Anonimizador de PDF · © 2025 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Recurso: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a></p>
-        <p class="muted"><a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Licencia del código: AGPL v3</a></p>
+        <summary data-i18n="details.credits.title">Créditos y soporte</summary>
+        <p class="muted" data-i18n="details.credits.contact" data-i18n-type="html">¿Dudas o sugerencias? Pulsa el botón verde <a href="https://github.com/jjdeharo/anonim-pdf/issues" style="color:inherit; text-decoration:underline;">New issue</a> en GitHub.</p>
+        <p class="muted" data-i18n="details.credits.owner" data-i18n-type="html">Anonimizador de PDF · © 2025 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Recurso: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a></p>
+        <p class="muted" data-i18n="details.credits.license" data-i18n-type="html"><a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Licencia del código: AGPL v3</a></p>
       </details>
 
     </section>
@@ -179,11 +204,11 @@
           </svg>
         </button>
         <div id="zoomOverlay">
-          <span>Zoom:</span>
+          <span data-i18n="viewer.zoom.label">Zoom:</span>
           <button id="zoomOut" type="button" disabled>-</button>
           <span id="zoomDisplay">100%</span>
           <button id="zoomIn" type="button" disabled>+</button>
-          <button id="zoomFit" type="button" disabled>Ajustar ancho</button>
+          <button id="zoomFit" type="button" disabled data-i18n="viewer.zoom.fit">Ajustar ancho</button>
         </div>
       </div>
       <div id="viewerContainer">
@@ -194,12 +219,12 @@
 
   <div id="profModal" role="dialog" aria-modal="true" aria-labelledby="profModalTitle" aria-describedby="profModalBody">
     <div class="modalDialog">
-      <button id="closeProfModal" class="modalClose" type="button">Cerrar aviso</button>
-      <h2 id="profModalTitle">Aviso importante</h2>
+      <button id="closeProfModal" class="modalClose" type="button" data-i18n="modal.close">Cerrar aviso</button>
+      <h2 id="profModalTitle" data-i18n="modal.title">Aviso importante</h2>
       <div id="profModalBody" style="display:flex; flex-direction:column; gap:1rem;">
-        <p><strong>Esta aplicación únicamente genera un PDF anonimizado</strong>, ocultando los datos identificativos del alumnado para que los documentos puedan emplearse en herramientas de inteligencia artificial sin exponer información personal.</p>
-        <p>La inteligencia artificial puede servir de apoyo para obtener análisis parciales, detectar patrones o aportar nuevas perspectivas sobre los trabajos del alumnado. <strong>No debe confundirse su uso con la función docente</strong>: la IA no evalúa, no corrige y no puede asumir la responsabilidad educativa.</p>
-        <p><strong>La evaluación, el juicio pedagógico y la calificación del alumnado corresponden siempre al profesorado.</strong> La IA puede complementar la reflexión, pero nunca sustituir el criterio profesional ni la decisión final del docente.</p>
+        <p data-i18n="modal.body1" data-i18n-type="html"><strong>Esta aplicación únicamente genera un PDF anonimizado</strong>, ocultando los datos identificativos del alumnado para que los documentos puedan emplearse en herramientas de inteligencia artificial sin exponer información personal.</p>
+        <p data-i18n="modal.body2" data-i18n-type="html">La inteligencia artificial puede servir de apoyo para obtener análisis parciales, detectar patrones o aportar nuevas perspectivas sobre los trabajos del alumnado. <strong>No debe confundirse su uso con la función docente</strong>: la IA no evalúa, no corrige y no puede asumir la responsabilidad educativa.</p>
+        <p data-i18n="modal.body3" data-i18n-type="html"><strong>La evaluación, el juicio pedagógico y la calificación del alumnado corresponden siempre al profesorado.</strong> La IA puede complementar la reflexión, pero nunca sustituir el criterio profesional ni la decisión final del docente.</p>
       </div>
     </div>
   </div>
@@ -208,9 +233,358 @@
 
 <script>
   window.addEventListener('DOMContentLoaded', () => {
+    const LANG_STORAGE_KEY = 'anonim-pdf-lang';
+    const SUPPORTED_LOCALES = ['es', 'ca', 'gl', 'eu', 'en'];
+    const FALLBACK_LOCALE = 'es';
+    const LOCALE_INTL = { es: 'es-ES', ca: 'ca-ES', gl: 'gl-ES', eu: 'eu-ES', en: 'en' };
+    const TRANSLATIONS = {
+      es: {
+        'app.windowTitle': `Anonimizador de PDF e imágenes — cliente`,
+        'app.headerTitle': `Anonimizador de PDF e imágenes`,
+        'lang.label': `Idioma`,
+        'info.noticeButton': `Aviso importante`,
+        'drop.default': `Arrastra un PDF o imagen o haz clic para abrirlo`,
+        'status.page': `Página`,
+        'controls.usage.title': `Uso`,
+        'controls.usage.help': `Arrastra con el ratón para definir rectángulos sobre el nombre. Selecciona con el botón derecho para aplicar el mismo rectángulo a todas las páginas del PDF. Doble clic borra el último rectángulo.`,
+        'controls.rect.title': `Dibujo del rectángulo`,
+        'controls.rect.stroke': `Grosor del borde:`,
+        'controls.rect.opacity': `Opacidad tapa:`,
+        'controls.rect.colorTitle': `Color de la máscara`,
+        'controls.rect.color.black': `Negro`,
+        'controls.rect.color.white': `Blanco`,
+        'controls.rect.color.gray': `Gris`,
+        'controls.clearButton': `Limpiar rectángulos de esta página`,
+        'naming.legend': `Nombre del archivo exportado`,
+        'naming.option.derived': `Mismo nombre + _anonim`,
+        'naming.option.fixed': `anonim.pdf`,
+        'export.button.default': `Exportar anonimizado`,
+        'export.button.withTarget': `Exportar {target}`,
+        'export.mode.pdf': `PDF anonimizado`,
+        'export.mode.zip': `ZIP con un PNG por página`,
+        'export.mode.pngSingle': `PNG con todas las páginas`,
+        'export.mode.pngImage': `Imagen PNG anonimizada`,
+        'export.selector.label': `Formato de exportación`,
+        'details.security.title': `Notas sobre seguridad del anonimizado`,
+        'details.security.item1': `La exportación genera un PDF de imágenes (rasterizado). El texto original desaparece: ya no es seleccionable ni extraíble como texto.`,
+        'details.security.item2': `Esto es adecuado para ocultar nombres propios de trabajos entregados, con la contrapartida de mayor tamaño y pérdida de accesibilidad.`,
+        'details.security.item3': `Uso totalmente local en tu navegador.`,
+        'details.credits.title': `Créditos y soporte`,
+        'details.credits.contact': `¿Dudas o sugerencias? Pulsa el botón verde <a href="https://github.com/jjdeharo/anonim-pdf/issues" style="color:inherit; text-decoration:underline;">New issue</a> en GitHub.`,
+        'details.credits.owner': `Anonimizador de PDF · © 2025 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Recurso: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
+        'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Licencia del código: AGPL v3</a>`,
+        'viewer.zoom.label': `Zoom:`,
+        'viewer.zoom.fit': `Ajustar ancho`,
+        'modal.close': `Cerrar aviso`,
+        'modal.title': `Aviso importante`,
+        'modal.body1': `<strong>Esta aplicación únicamente genera un PDF anonimizado</strong>, ocultando los datos identificativos del alumnado para que los documentos puedan emplearse en herramientas de inteligencia artificial sin exponer información personal.`,
+        'modal.body2': `La inteligencia artificial puede servir de apoyo para obtener análisis parciales, detectar patrones o aportar nuevas perspectivas sobre los trabajos del alumnado. <strong>No debe confundirse su uso con la función docente</strong>: la IA no evalúa, no corrige y no puede asumir la responsabilidad educativa.`,
+        'modal.body3': `<strong>La evaluación, el juicio pedagógico y la calificación del alumnado corresponden siempre al profesorado.</strong> La IA puede complementar la reflexión, pero nunca sustituir el criterio profesional ni la decisión final del docente.`,
+        'alerts.pdfjsMissing': `No se pudo cargar pdf.js. Comprueba la conexión o políticas de bloqueadores. He cambiado al build legacy para exponer "pdfjsLib".`,
+        'alerts.pdfjsWorkerWarning': `Fallo al configurar worker pdf.js, usando modo sin worker.`,
+        'alerts.exportError': `Ocurrió un error exportando el documento anonimizado.`,
+        'alerts.exportErrorLog': `Error durante la exportación.`,
+        'alerts.jsPdfMissing': `No se pudo cargar la librería jsPDF.`,
+        'alerts.jsZipMissing': `No se pudo cargar la librería JSZip.`,
+        'alerts.pngScaleNotice': `El PNG único se generará con menor resolución por la longitud del documento. Revisa que el resultado sea legible.`,
+        'alerts.singlePngFail': `No se pudo generar la imagen única anonimizada.`,
+        'alerts.imagePngFail': `No se pudo generar la imagen anonimizada.`,
+        'alerts.invalidFileType': `Selecciona un archivo PDF o una imagen (PNG, JPG, WEBP…).`,
+        'alerts.fileReadFailed': `No se pudo leer el archivo. Prueba con otro PDF.`,
+        'alerts.pdfOpenError': `No se pudo abrir el PDF: {error}`,
+        'alerts.imageOpenError': `No se pudo abrir la imagen. Prueba con otro archivo.`,
+        'alerts.imageGenericError': `No se pudo abrir la imagen.`,
+        'alerts.imageSizeUnknown': `No se pudo determinar el tamaño de la imagen.`,
+        'alerts.pdfLoadErrorLog': `Error cargando PDF`,
+        'alerts.imageLoadErrorLog': `No se pudo cargar la imagen seleccionada.`,
+        'alerts.fileReadErrorLog': `No se pudo leer el archivo soltado/seleccionado.`,
+        'alerts.syncInputWarn': `No se pudo sincronizar input de archivo con el drop.`,
+        'controls.toggle.show': `Mostrar panel de controles`,
+        'controls.toggle.hide': `Ocultar panel de controles`,
+        'controls.toggle.showButton': `Mostrar panel de controles`,
+        'export.notice.pngSingle': `Generará una única imagen PNG apilando las {pages} páginas (ancho máximo {width}px y alto limitado a {height}px para que la IA lea el contenido). Puede tardar unos segundos.`,
+        'defaults.document': `documento`,
+        'defaults.documentPdf': `documento.pdf`,
+      },
+      ca: {
+        'app.windowTitle': `Anonimitzador de PDF i imatges — client`,
+        'app.headerTitle': `Anonimitzador de PDF i imatges`,
+        'lang.label': `Idioma`,
+        'info.noticeButton': `Avís important`,
+        'drop.default': `Arrossega un PDF o una imatge o fes clic per obrir-la`,
+        'status.page': `Pàgina`,
+        'controls.usage.title': `Ús`,
+        'controls.usage.help': `Arrossega amb el ratolí per definir rectangles sobre el nom. Selecciona amb el botó dret per aplicar el mateix rectangle a totes les pàgines del PDF. El doble clic esborra l'últim rectangle.`,
+        'controls.rect.title': `Dibuix del rectangle`,
+        'controls.rect.stroke': `Gruix del contorn:`,
+        'controls.rect.opacity': `Opacitat de la cobertura:`,
+        'controls.rect.colorTitle': `Color de la màscara`,
+        'controls.rect.color.black': `Negre`,
+        'controls.rect.color.white': `Blanc`,
+        'controls.rect.color.gray': `Gris`,
+        'controls.clearButton': `Neteja els rectangles d'aquesta pàgina`,
+        'naming.legend': `Nom del fitxer exportat`,
+        'naming.option.derived': `Mateix nom + _anonim`,
+        'naming.option.fixed': `anonim.pdf`,
+        'export.button.default': `Exporta anonimitzat`,
+        'export.button.withTarget': `Exporta {target}`,
+        'export.mode.pdf': `PDF anonimitzat`,
+        'export.mode.zip': `ZIP amb un PNG per pàgina`,
+        'export.mode.pngSingle': `PNG amb totes les pàgines`,
+        'export.mode.pngImage': `Imatge PNG anonimitzada`,
+        'export.selector.label': `Format d'exportació`,
+        'details.security.title': `Notes sobre la seguretat de l'anonimització`,
+        'details.security.item1': `L'exportació genera un PDF d'imatges (rasteritzat). El text original desapareix: ja no és seleccionable ni es pot extreure com a text.`,
+        'details.security.item2': `És adequat per ocultar noms propis de treballs entregats, amb la contrapartida d'un pes més gran i pèrdua d'accessibilitat.`,
+        'details.security.item3': `Ús totalment local al teu navegador.`,
+        'details.credits.title': `Crèdits i suport`,
+        'details.credits.contact': `Dubtes o suggeriments? Prem el botó verd <a href="https://github.com/jjdeharo/anonim-pdf/issues" style="color:inherit; text-decoration:underline;">New issue</a> a GitHub.`,
+        'details.credits.owner': `Anonimitzador de PDF · © 2025 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Recurs: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
+        'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Llicència del codi: AGPL v3</a>`,
+        'viewer.zoom.label': `Zoom:`,
+        'viewer.zoom.fit': `Ajusta l'amplada`,
+        'modal.close': `Tanca l'avís`,
+        'modal.title': `Avís important`,
+        'modal.body1': `<strong>Aquesta aplicació només genera un PDF anonimitzat</strong>, ocultant les dades identificatives de l'alumnat perquè els documents es puguin emprar en eines d'intel·ligència artificial sense exposar informació personal.`,
+        'modal.body2': `La intel·ligència artificial pot servir de suport per obtenir anàlisis parcials, detectar patrons o aportar noves perspectives sobre els treballs de l'alumnat. <strong>No s'ha de confondre el seu ús amb la funció docent</strong>: la IA no avalua, no corregeix i no pot assumir la responsabilitat educativa.`,
+        'modal.body3': `<strong>L'avaluació, el judici pedagògic i la qualificació de l'alumnat corresponen sempre al professorat.</strong> La IA pot complementar la reflexió, però mai substituir el criteri professional ni la decisió final del docent.`,
+        'alerts.pdfjsMissing': `No s'ha pogut carregar pdf.js. Comprova la connexió o els bloquejadors. He canviat al build legacy per exposar "pdfjsLib".`,
+        'alerts.pdfjsWorkerWarning': `Error en configurar el worker de pdf.js; s'utilitzarà el mode sense worker.`,
+        'alerts.exportError': `S'ha produït un error en exportar el document anonimitzat.`,
+        'alerts.exportErrorLog': `Error en l'exportació.`,
+        'alerts.jsPdfMissing': `No s'ha pogut carregar la llibreria jsPDF.`,
+        'alerts.jsZipMissing': `No s'ha pogut carregar la llibreria JSZip.`,
+        'alerts.pngScaleNotice': `El PNG únic es generarà amb menys resolució per la longitud del document. Revisa que el resultat sigui llegible.`,
+        'alerts.singlePngFail': `No s'ha pogut generar la imatge única anonimitzada.`,
+        'alerts.imagePngFail': `No s'ha pogut generar la imatge anonimitzada.`,
+        'alerts.invalidFileType': `Selecciona un fitxer PDF o una imatge (PNG, JPG, WEBP…).`,
+        'alerts.fileReadFailed': `No s'ha pogut llegir el fitxer. Prova amb un altre PDF.`,
+        'alerts.pdfOpenError': `No s'ha pogut obrir el PDF: {error}`,
+        'alerts.imageOpenError': `No s'ha pogut obrir la imatge. Prova amb un altre fitxer.`,
+        'alerts.imageGenericError': `No s'ha pogut obrir la imatge.`,
+        'alerts.imageSizeUnknown': `No s'ha pogut determinar la mida de la imatge.`,
+        'alerts.pdfLoadErrorLog': `Error en carregar el PDF`,
+        'alerts.imageLoadErrorLog': `No s'ha pogut carregar la imatge seleccionada.`,
+        'alerts.fileReadErrorLog': `No s'ha pogut llegir el fitxer arrossegat/seleccionat.`,
+        'alerts.syncInputWarn': `No s'ha pogut sincronitzar l'entrada de fitxers amb l'arrossegament.`,
+        'controls.toggle.show': `Mostra el panell de controls`,
+        'controls.toggle.hide': `Oculta el panell de controls`,
+        'controls.toggle.showButton': `Mostra el panell de controls`,
+        'export.notice.pngSingle': `Generarà una única imatge PNG apilant les {pages} pàgines (amplada màxima {width}px i alçada limitada a {height}px perquè la IA en llegeixi el contingut). Pot trigar uns segons.`,
+        'defaults.document': `document`,
+        'defaults.documentPdf': `document.pdf`,
+      },
+      gl: {
+        'app.windowTitle': `Anonimizador de PDF e imaxes — cliente`,
+        'app.headerTitle': `Anonimizador de PDF e imaxes`,
+        'lang.label': `Idioma`,
+        'info.noticeButton': `Aviso importante`,
+        'drop.default': `Arrastra un PDF ou unha imaxe ou fai clic para abrila`,
+        'status.page': `Páxina`,
+        'controls.usage.title': `Uso`,
+        'controls.usage.help': `Arrastra co rato para definir rectángulos sobre o nome. Selecciona co botón dereito para aplicar o mesmo rectángulo a todas as páxinas do PDF. O dobre clic borra o último rectángulo.`,
+        'controls.rect.title': `Debuxo do rectángulo`,
+        'controls.rect.stroke': `Grosor do bordo:`,
+        'controls.rect.opacity': `Opacidade da cuberta:`,
+        'controls.rect.colorTitle': `Cor da máscara`,
+        'controls.rect.color.black': `Negro`,
+        'controls.rect.color.white': `Branco`,
+        'controls.rect.color.gray': `Gris`,
+        'controls.clearButton': `Limpar os rectángulos desta páxina`,
+        'naming.legend': `Nome do ficheiro exportado`,
+        'naming.option.derived': `Mesmo nome + _anonim`,
+        'naming.option.fixed': `anonim.pdf`,
+        'export.button.default': `Exportar anonimizado`,
+        'export.button.withTarget': `Exportar {target}`,
+        'export.mode.pdf': `PDF anonimizado`,
+        'export.mode.zip': `ZIP cun PNG por páxina`,
+        'export.mode.pngSingle': `PNG con todas as páxinas`,
+        'export.mode.pngImage': `Imaxe PNG anonimizada`,
+        'export.selector.label': `Formato de exportación`,
+        'details.security.title': `Notas sobre a seguridade da anonimización`,
+        'details.security.item1': `A exportación xera un PDF de imaxes (rasterizado). O texto orixinal desaparece: xa non é seleccionable nin extraíble como texto.`,
+        'details.security.item2': `É axeitado para agochar nomes propios de traballos entregados, coa contrapartida dun maior tamaño e perda de accesibilidade.`,
+        'details.security.item3': `Uso totalmente local no teu navegador.`,
+        'details.credits.title': `Créditos e soporte`,
+        'details.credits.contact': `Tes dúbidas ou suxestións? Preme o botón verde <a href="https://github.com/jjdeharo/anonim-pdf/issues" style="color:inherit; text-decoration:underline;">New issue</a> en GitHub.`,
+        'details.credits.owner': `Anonimizador de PDF · © 2025 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Recurso: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
+        'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Licenza do código: AGPL v3</a>`,
+        'viewer.zoom.label': `Zoom:`,
+        'viewer.zoom.fit': `Axustar ancho`,
+        'modal.close': `Pechar aviso`,
+        'modal.title': `Aviso importante`,
+        'modal.body1': `<strong>Esta aplicación só xera un PDF anonimizado</strong>, ocultando os datos identificativos do alumnado para que os documentos poidan empregarse en ferramentas de intelixencia artificial sen expor información persoal.`,
+        'modal.body2': `A intelixencia artificial pode servir de apoio para obter análises parciais, detectar patróns ou achegar novas perspectivas sobre os traballos do alumnado. <strong>Non se debe confundir o seu uso coa función docente</strong>: a IA non avalía, non corrixe e non pode asumir a responsabilidade educativa.`,
+        'modal.body3': `<strong>A avaliación, o xuízo pedagóxico e a cualificación do alumnado corresponden sempre ao profesorado.</strong> A IA pode complementar a reflexión, pero nunca substituír o criterio profesional nin a decisión final do docente.`,
+        'alerts.pdfjsMissing': `Non se puido cargar pdf.js. Comproba a conexión ou os bloqueadores. Cambiei á versión legacy para expor "pdfjsLib".`,
+        'alerts.pdfjsWorkerWarning': `Produciuse un erro ao configurar o worker de pdf.js; usarase o modo sen worker.`,
+        'alerts.exportError': `Produciuse un erro ao exportar o documento anonimizado.`,
+        'alerts.exportErrorLog': `Erro na exportación.`,
+        'alerts.jsPdfMissing': `Non se puido cargar a biblioteca jsPDF.`,
+        'alerts.jsZipMissing': `Non se puido cargar a biblioteca JSZip.`,
+        'alerts.pngScaleNotice': `O PNG único xeraráse cunha resolución menor pola lonxitude do documento. Revisa que o resultado sexa lexible.`,
+        'alerts.singlePngFail': `Non se puido xerar a imaxe única anonimizada.`,
+        'alerts.imagePngFail': `Non se puido xerar a imaxe anonimizada.`,
+        'alerts.invalidFileType': `Selecciona un ficheiro PDF ou unha imaxe (PNG, JPG, WEBP…).`,
+        'alerts.fileReadFailed': `Non se puido ler o ficheiro. Proba con outro PDF.`,
+        'alerts.pdfOpenError': `Non se puido abrir o PDF: {error}`,
+        'alerts.imageOpenError': `Non se puido abrir a imaxe. Proba con outro ficheiro.`,
+        'alerts.imageGenericError': `Non se puido abrir a imaxe.`,
+        'alerts.imageSizeUnknown': `Non se puido determinar o tamaño da imaxe.`,
+        'alerts.pdfLoadErrorLog': `Erro ao cargar o PDF`,
+        'alerts.imageLoadErrorLog': `Non se puido cargar a imaxe seleccionada.`,
+        'alerts.fileReadErrorLog': `Non se puido ler o ficheiro soltado/seleccionado.`,
+        'alerts.syncInputWarn': `Non se puido sincronizar a entrada de ficheiros co arrastre.`,
+        'controls.toggle.show': `Mostrar o panel de controis`,
+        'controls.toggle.hide': `Agochar o panel de controis`,
+        'controls.toggle.showButton': `Mostrar o panel de controis`,
+        'export.notice.pngSingle': `Xerarase unha única imaxe PNG apilando as {pages} páxinas (ancho máximo {width}px e alto limitado a {height}px para que a IA lea o contido). Pode tardar uns segundos.`,
+        'defaults.document': `documento`,
+        'defaults.documentPdf': `documento.pdf`,
+      },
+      eu: {
+        'app.windowTitle': `PDF eta irudien anonimizatzailea — bezeroa`,
+        'app.headerTitle': `PDF eta irudien anonimizatzailea`,
+        'lang.label': `Hizkuntza`,
+        'info.noticeButton': `Ohar garrantzitsua`,
+        'drop.default': `Arrastatu PDF bat edo irudi bat edo egin klik irekitzeko`,
+        'status.page': `Orria`,
+        'controls.usage.title': `Erabilera`,
+        'controls.usage.help': `Arratoia arrastatuz marraztu laukizuzenak izenaren gainean. Egin eskuineko klik laukizuzen bera PDFko orri guztietan aplikatzeko. Klik bikoitzak azken laukizuzena ezabatzen du.`,
+        'controls.rect.title': `Laukizuzenaren marrazketa`,
+        'controls.rect.stroke': `Ertzaren lodiera:`,
+        'controls.rect.opacity': `Estalduraren opakutasuna:`,
+        'controls.rect.colorTitle': `Maskararen kolorea`,
+        'controls.rect.color.black': `Beltza`,
+        'controls.rect.color.white': `Zuria`,
+        'controls.rect.color.gray': `Grisa`,
+        'controls.clearButton': `Garbitu orri honetako laukizuzenak`,
+        'naming.legend': `Esportatutako fitxategiaren izena`,
+        'naming.option.derived': `Izen bera + _anonim`,
+        'naming.option.fixed': `anonim.pdf`,
+        'export.button.default': `Esportatu anonimizatuta`,
+        'export.button.withTarget': `Esportatu {target}`,
+        'export.mode.pdf': `PDF anonimizatua`,
+        'export.mode.zip': `PNG bat orri bakoitzeko duen ZIPa`,
+        'export.mode.pngSingle': `PNG orri guztiekin`,
+        'export.mode.pngImage': `PNG irudi anonimizatua`,
+        'export.selector.label': `Esportazio-formatua`,
+        'details.security.title': `Anonimizazioaren segurtasun-oharrak`,
+        'details.security.item1': `Esportazioak irudiz osatutako PDFa sortzen du (rasterizatua). Jatorrizko testua desagertu egiten da: ez da hauta daitekeena ezta testu gisa ateragarria ere.`,
+        'details.security.item2': `Egokia da ikasleen lanetako izen propioak ezkutatzeko, fitxategia handiagoa eta irisgarritasuna txikiagoa izatearen truke.`,
+        'details.security.item3': `Erabilera erabat lokala da zure nabigatzailean.`,
+        'details.credits.title': `Kredituak eta laguntza`,
+        'details.credits.contact': `Zalantzak edo iradokizunak? Sakatu botoi berdea <a href="https://github.com/jjdeharo/anonim-pdf/issues" style="color:inherit; text-decoration:underline;">New issue</a> GitHuben.`,
+        'details.credits.owner': `PDF eta irudien anonimizatzailea · © 2025 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Baliabidea: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
+        'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Kodearen lizentzia: AGPL v3</a>`,
+        'viewer.zoom.label': `Zooma:`,
+        'viewer.zoom.fit': `Doitu zabalera`,
+        'modal.close': `Itxi oharra`,
+        'modal.title': `Ohar garrantzitsua`,
+        'modal.body1': `<strong>Aplikazio honek PDF anonimizatua sortzen du soilik</strong>, ikasleen datu identifikatzaileak ezkutatuz, dokumentuak adimen artifizialeko tresnetan erabili ahal izateko informazio pertsonala agerian utzi gabe.`,
+        'modal.body2': `Adimen artifizialak lagungarri izan daiteke analisi partzialak lortzeko, ereduak detektatzeko edo ikasleen lanen inguruko ikuspegi berriak emateko. <strong>Ez da nahastu behar bere erabilera irakasle-lanarekin</strong>: AAk ez du ebaluatzen, ez du zuzentzen eta ezin du hezkuntza-erantzukizuna bere gain hartu.`,
+        'modal.body3': `<strong>Ebaluazioa, irizpide pedagogikoa eta ikasleen kalifikazioa beti irakasleen esku dago.</strong> AAk hausnarketa osatu dezake, baina inoiz ez du ordezkatuko irakaslearen profesionaltasuna eta azken erabakia.`,
+        'alerts.pdfjsMissing': `Ezin izan da pdf.js kargatu. Egiaztatu konexioa edo blokeatzaileak. "pdfjsLib" erakusteko legacy build-era aldatu naiz.`,
+        'alerts.pdfjsWorkerWarning': `Errorea pdf.js worker-a konfiguratzean; worker-rik gabeko modua erabiliko da.`,
+        'alerts.exportError': `Errorea gertatu da dokumentua anonimizatuta esportatzean.`,
+        'alerts.exportErrorLog': `Errorea esportazioan.`,
+        'alerts.jsPdfMissing': `Ezin izan da jsPDF liburutegia kargatu.`,
+        'alerts.jsZipMissing': `Ezin izan da JSZip liburutegia kargatu.`,
+        'alerts.pngScaleNotice': `PNG bakarrak bereizmen txikiagoa izango du dokumentua luzea delako. Egiaztatu emaitza irakurgarria dela.`,
+        'alerts.singlePngFail': `Ezin izan da PNG bakarra anonimizatua sortu.`,
+        'alerts.imagePngFail': `Ezin izan da irudi anonimizatua sortu.`,
+        'alerts.invalidFileType': `Hautatu PDF edo irudi fitxategi bat (PNG, JPG, WEBP…).`,
+        'alerts.fileReadFailed': `Ezin izan da fitxategia irakurri. Saiatu beste PDF batekin.`,
+        'alerts.pdfOpenError': `Ezin izan da PDFa ireki: {error}`,
+        'alerts.imageOpenError': `Ezin izan da irudia ireki. Saiatu beste fitxategi batekin.`,
+        'alerts.imageGenericError': `Ezin izan da irudia ireki.`,
+        'alerts.imageSizeUnknown': `Ezin izan da irudiaren tamaina zehaztu.`,
+        'alerts.pdfLoadErrorLog': `Errorea PDFa kargatzean`,
+        'alerts.imageLoadErrorLog': `Ezin izan da hautatutako irudia kargatu.`,
+        'alerts.fileReadErrorLog': `Ezin izan da arrastatutako/hautatutako fitxategia irakurri.`,
+        'alerts.syncInputWarn': `Ezin izan da fitxategi-sarrera arrastaketarekin sinkronizatu.`,
+        'controls.toggle.show': `Erakutsi kontrol-panela`,
+        'controls.toggle.hide': `Ezkutatu kontrol-panela`,
+        'controls.toggle.showButton': `Erakutsi kontrol-panela`,
+        'export.notice.pngSingle': `PNG irudi bakarra sortuko da {pages} orriak pilatuz (gehienezko zabalera {width}px eta altuera {height}px, AAk edukia irakur dezan). Segundo batzuk behar izan ditzake.`,
+        'defaults.document': `dokumentua`,
+        'defaults.documentPdf': `dokumentua.pdf`,
+      },
+      en: {
+        'app.windowTitle': `PDF & Image Anonymizer — client`,
+        'app.headerTitle': `PDF & Image Anonymizer`,
+        'lang.label': `Language`,
+        'info.noticeButton': `Important notice`,
+        'drop.default': `Drop a PDF or image or click to open`,
+        'status.page': `Page`,
+        'controls.usage.title': `Usage`,
+        'controls.usage.help': `Drag with the mouse to draw rectangles over the name. Right-click to reuse the same rectangle on every PDF page. Double-click removes the last rectangle.`,
+        'controls.rect.title': `Rectangle drawing`,
+        'controls.rect.stroke': `Border thickness:`,
+        'controls.rect.opacity': `Mask opacity:`,
+        'controls.rect.colorTitle': `Mask color`,
+        'controls.rect.color.black': `Black`,
+        'controls.rect.color.white': `White`,
+        'controls.rect.color.gray': `Gray`,
+        'controls.clearButton': `Clear rectangles on this page`,
+        'naming.legend': `Exported file name`,
+        'naming.option.derived': `Same name + _anonim`,
+        'naming.option.fixed': `anonim.pdf`,
+        'export.button.default': `Export anonymized`,
+        'export.button.withTarget': `Export {target}`,
+        'export.mode.pdf': `Anonymized PDF`,
+        'export.mode.zip': `ZIP with one PNG per page`,
+        'export.mode.pngSingle': `PNG with every page`,
+        'export.mode.pngImage': `Anonymized PNG image`,
+        'export.selector.label': `Export format`,
+        'details.security.title': `Anonymization safety notes`,
+        'details.security.item1': `Exporting creates an image-based (rasterized) PDF. The original text disappears: it is no longer selectable or extractable.`,
+        'details.security.item2': `Ideal for hiding pupil names in submitted work, at the cost of larger files and reduced accessibility.`,
+        'details.security.item3': `Everything runs locally in your browser.`,
+        'details.credits.title': `Credits & support`,
+        'details.credits.contact': `Questions or suggestions? Click the green <a href="https://github.com/jjdeharo/anonim-pdf/issues" style="color:inherit; text-decoration:underline;">New issue</a> button on GitHub.`,
+        'details.credits.owner': `PDF & Image Anonymizer · © 2025 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Resource: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
+        'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Code license: AGPL v3</a>`,
+        'viewer.zoom.label': `Zoom:`,
+        'viewer.zoom.fit': `Fit width`,
+        'modal.close': `Close notice`,
+        'modal.title': `Important notice`,
+        'modal.body1': `<strong>This application only produces an anonymized PDF</strong>, hiding students' identifying data so documents can be used with AI tools without exposing personal information.`,
+        'modal.body2': `Artificial intelligence can help obtain partial analyses, detect patterns or add new perspectives to students' work. <strong>It must not be confused with the teacher's role</strong>: AI does not grade, does not correct and cannot assume educational responsibility.`,
+        'modal.body3': `<strong>Assessment, pedagogical judgement and grading always belong to the teaching staff.</strong> AI can support reflection, but never replace professional criteria or the teacher's final decision.`,
+        'alerts.pdfjsMissing': `pdf.js could not be loaded. Check your connection or blockers. Switched to the legacy build to expose "pdfjsLib".`,
+        'alerts.pdfjsWorkerWarning': `Failed to configure the pdf.js worker; running in workerless mode.`,
+        'alerts.exportError': `An error occurred while exporting the anonymized document.`,
+        'alerts.exportErrorLog': `Error during export.`,
+        'alerts.jsPdfMissing': `The jsPDF library could not be loaded.`,
+        'alerts.jsZipMissing': `The JSZip library could not be loaded.`,
+        'alerts.pngScaleNotice': `The single PNG will be generated at a lower resolution because of the document length. Please check that the result is readable.`,
+        'alerts.singlePngFail': `The single anonymized image could not be generated.`,
+        'alerts.imagePngFail': `The anonymized image could not be generated.`,
+        'alerts.invalidFileType': `Select a PDF or an image file (PNG, JPG, WEBP…).`,
+        'alerts.fileReadFailed': `The file could not be read. Try another PDF.`,
+        'alerts.pdfOpenError': `The PDF could not be opened: {error}`,
+        'alerts.imageOpenError': `The image could not be opened. Try another file.`,
+        'alerts.imageGenericError': `The image could not be opened.`,
+        'alerts.imageSizeUnknown': `The image dimensions could not be determined.`,
+        'alerts.pdfLoadErrorLog': `Error loading PDF`,
+        'alerts.imageLoadErrorLog': `Could not load the selected image.`,
+        'alerts.fileReadErrorLog': `Could not read the dropped/selected file.`,
+        'alerts.syncInputWarn': `Could not sync the file input with the drop action.`,
+        'controls.toggle.show': `Show control panel`,
+        'controls.toggle.hide': `Hide control panel`,
+        'controls.toggle.showButton': `Show control panel`,
+        'export.notice.pngSingle': `Generates a single PNG stacking {pages} pages (maximum width {width}px and height capped at {height}px so AI can read the content). It may take a few seconds.`,
+        'defaults.document': `document`,
+        'defaults.documentPdf': `document.pdf`,
+      },
+    };
+
+    let currentLocale = detectInitialLocale();
+
     const havePdfjs = typeof window.pdfjsLib !== 'undefined';
     if (!havePdfjs) {
-      alert('No se pudo cargar pdf.js. Comprueba la conexión o políticas de bloqueadores. He cambiado al build legacy para exponer "pdfjsLib".');
+      alert(t('alerts.pdfjsMissing'));
       return;
     }
 
@@ -218,7 +592,7 @@
     try {
       pdfjsLib.GlobalWorkerOptions.workerSrc = WORKER_SRC;
     } catch (err) {
-      console.warn('Fallo al configurar worker pdf.js, usando modo sin worker.', err);
+      console.warn(t('alerts.pdfjsWorkerWarning'), err);
       pdfjsLib.disableWorker = true;
     }
 
@@ -247,6 +621,7 @@
     const profModal = document.getElementById('profModal');
     const closeProfModalBtn = document.getElementById('closeProfModal');
     const openProfModalBtn = document.getElementById('openProfModal');
+    const languageSelect = document.getElementById('languageSelect');
     let lastFocusBeforeModal = null;
 
     let pdfDoc = null;
@@ -254,7 +629,7 @@
     let docType = null;
     let scale = 1;
     let rectsByPage = {};
-    let currentFileName = 'documento.pdf';
+    let currentFileName = getDefaultDocumentName('.pdf');
     let namingStrategy = 'derived';
     let fitScale = 1;
     let basePageWidth = 0;
@@ -297,8 +672,8 @@
         }, { root: viewerContainer, threshold: [0.2, 0.45, 0.7] })
       : null;
 
-    const DEFAULT_DROP_TEXT = 'Arrastra un PDF o imagen o haz clic para abrirlo';
-    setFileDropStatus(DEFAULT_DROP_TEXT, false);
+    applyLocale(currentLocale, { skipPersist: true, initial: true });
+    setFileDropStatus(getDefaultDropText(), false);
     resetExportControls();
 
     const storedControlsHidden = localStorage.getItem(CONTROLS_HIDDEN_KEY) === 'true';
@@ -361,7 +736,7 @@
         dt.items.add(file);
         fileInput.files = dt.files;
       } catch (err) {
-        console.warn('No se pudo sincronizar input de archivo con el drop.', err);
+        console.warn(t('alerts.syncInputWarn'), err);
       }
     });
 
@@ -406,6 +781,11 @@
       });
     });
 
+    languageSelect?.addEventListener('change', (event) => {
+      const nextLocale = event.target.value;
+      applyLocale(nextLocale);
+    });
+
     const storedZoom = parseFloat(localStorage.getItem(ZOOM_KEY) || '');
     if (!Number.isNaN(storedZoom)) {
       zoomFactor = clamp(storedZoom, MIN_ZOOM, MAX_ZOOM);
@@ -439,8 +819,8 @@
           await exportImageAsPng();
         }
       } catch (err) {
-        console.error('Error durante la exportación.', err);
-        alert('Ocurrió un error exportando el documento anonimizado.');
+        console.error(t('alerts.exportErrorLog'), err);
+        alert(t('alerts.exportError'));
       }
     });
 
@@ -458,7 +838,7 @@
       if (!pdfDoc) return;
       const jspdfNs = window.jspdf;
       if (!jspdfNs || typeof jspdfNs.jsPDF !== 'function') {
-        alert('No se pudo cargar la librería jsPDF.');
+        alert(t('alerts.jsPdfMissing'));
         return;
       }
       const { jsPDF } = jspdfNs;
@@ -497,7 +877,7 @@
       if (!pdfDoc) return;
       const JSZipCtor = window.JSZip;
       if (typeof JSZipCtor !== 'function') {
-        alert('No se pudo cargar la librería JSZip.');
+        alert(t('alerts.jsZipMissing'));
         return;
       }
       const zip = new JSZipCtor();
@@ -574,7 +954,7 @@
       }
 
       if (minScaleNotice) {
-        alert('El PNG único se generará con menor resolución por la longitud del documento. Revisa que el resultado sea legible.');
+        alert(t('alerts.pngScaleNotice'));
       }
 
       const canvas = document.createElement('canvas');
@@ -610,7 +990,7 @@
 
       const blob = await canvasToBlob(canvas, 'image/png');
       if (!blob) {
-        alert('No se pudo generar la imagen única anonimizada.');
+        alert(t('alerts.singlePngFail'));
         return;
       }
       triggerDownload(blob, buildAnonName(currentFileName, '.png'));
@@ -631,7 +1011,7 @@
 
       const blob = await canvasToBlob(canvas, 'image/png');
       if (!blob) {
-        alert('No se pudo generar la imagen anonimizada.');
+        alert(t('alerts.imagePngFail'));
         return;
       }
       triggerDownload(blob, buildAnonName(currentFileName, '.png'));
@@ -682,15 +1062,19 @@
 
     function setControlsHidden(hidden) {
       document.body.classList.toggle('controlsHidden', hidden);
+      const showLabel = t('controls.toggle.show');
+      const hideLabel = t('controls.toggle.hide');
+      const showButtonLabel = t('controls.toggle.showButton');
       if (toggleControlsBtn) {
+        const label = hidden ? showLabel : hideLabel;
         toggleControlsBtn.setAttribute('aria-pressed', hidden ? 'true' : 'false');
-        toggleControlsBtn.setAttribute('aria-label', hidden ? 'Mostrar panel de controles' : 'Ocultar panel de controles');
-        toggleControlsBtn.setAttribute('title', hidden ? 'Mostrar panel de controles' : 'Ocultar panel de controles');
+        toggleControlsBtn.setAttribute('aria-label', label);
+        toggleControlsBtn.setAttribute('title', label);
       }
       if (showControlsBtn) {
         showControlsBtn.setAttribute('aria-pressed', hidden ? 'true' : 'false');
-        showControlsBtn.setAttribute('aria-label', 'Mostrar panel de controles');
-        showControlsBtn.setAttribute('title', 'Mostrar panel de controles');
+        showControlsBtn.setAttribute('aria-label', showButtonLabel);
+        showControlsBtn.setAttribute('title', showButtonLabel);
       }
     }
 
@@ -699,11 +1083,11 @@
       exportModeEl.innerHTML = '';
       exportModeEl.disabled = true;
       btnExport.disabled = true;
-      btnExport.textContent = 'Exportar anonimizado';
+      btnExport.textContent = t('export.button.default');
       exportModeEl.value = '';
       exportModeEl.hidden = true;
       exportModeEl.style.display = 'none';
-      exportModeEl.dataset.singleLabel = '';
+      exportModeEl.dataset.singleKey = '';
       clearExportNotice();
     }
 
@@ -723,30 +1107,34 @@
       let optionList = [];
       if (type === 'pdf') {
         optionList = [
-          { value: 'pdf', label: 'PDF anonimizado' },
-          { value: 'zip', label: 'ZIP con un PNG por página' }
+          { value: 'pdf', key: 'export.mode.pdf' },
+          { value: 'zip', key: 'export.mode.zip' }
         ];
         if (pageCount > 1) {
-          optionList.push({ value: 'png-single', label: 'PNG con todas las páginas' });
-        }
-        for (const opt of optionList) {
-          exportModeEl.appendChild(new Option(opt.label, opt.value));
+          optionList.push({ value: 'png-single', key: 'export.mode.pngSingle' });
         }
         const stored = localStorage.getItem(EXPORT_MODE_KEY);
         defaultValue = optionList.some((opt) => opt.value === stored) ? stored : 'pdf';
       } else {
-        optionList = [{ value: 'png', label: 'Imagen PNG anonimizada' }];
-        exportModeEl.appendChild(new Option(optionList[0].label, optionList[0].value));
+        optionList = [{ value: 'png', key: 'export.mode.pngImage' }];
         defaultValue = 'png';
+      }
+      for (const opt of optionList) {
+        const optionEl = document.createElement('option');
+        optionEl.value = opt.value;
+        optionEl.dataset.i18nKey = opt.key;
+        optionEl.textContent = t(opt.key);
+        exportModeEl.appendChild(optionEl);
       }
       const hasMultipleOptions = optionList.length > 1;
       btnExport.disabled = false;
       exportModeEl.value = defaultValue;
-      exportModeEl.dataset.singleLabel = hasMultipleOptions ? '' : (optionList[0]?.label || '');
+      exportModeEl.dataset.singleKey = hasMultipleOptions ? '' : (optionList[0]?.key || '');
       const showSelect = type === 'pdf' && hasMultipleOptions;
       exportModeEl.disabled = !showSelect;
       exportModeEl.hidden = !showSelect;
       exportModeEl.style.display = showSelect ? 'inline-block' : 'none';
+      refreshExportModeLabels();
       updateExportButtonLabel();
       if (type !== 'pdf') {
         localStorage.removeItem(EXPORT_MODE_KEY);
@@ -755,14 +1143,15 @@
     }
 
     function updateExportButtonLabel() {
-      let labelText = '';
+      let labelKey = '';
       if (exportModeEl.hidden || exportModeEl.options.length === 1) {
-        labelText = exportModeEl.dataset.singleLabel || exportModeEl.options[0]?.textContent || '';
+        labelKey = exportModeEl.dataset.singleKey || exportModeEl.options[0]?.dataset.i18nKey || '';
       } else {
         const selected = exportModeEl.options[exportModeEl.selectedIndex];
-        labelText = selected ? selected.textContent : '';
+        labelKey = selected?.dataset.i18nKey || '';
       }
-      btnExport.textContent = labelText ? `Exportar ${labelText}` : 'Exportar anonimizado';
+      const labelText = labelKey ? t(labelKey) : '';
+      btnExport.textContent = labelText ? t('export.button.withTarget', { target: labelText }) : t('export.button.default');
     }
 
     function updateExportNotice(forceHide = false) {
@@ -772,9 +1161,9 @@
         return;
       }
       if (docType === 'pdf' && pageCount > 1 && exportModeEl.value === 'png-single') {
-        const widthText = SINGLE_IMAGE_TARGET_WIDTH.toLocaleString('es-ES');
-        const heightText = SINGLE_IMAGE_MAX_HEIGHT.toLocaleString('es-ES');
-        exportNoticeEl.textContent = `Generará una única imagen PNG apilando las ${pageCount} páginas (ancho máximo ${widthText}px y alto limitado a ${heightText}px para que la IA lea el contenido). Puede tardar unos segundos.`;
+        const widthText = formatNumber(SINGLE_IMAGE_TARGET_WIDTH);
+        const heightText = formatNumber(SINGLE_IMAGE_MAX_HEIGHT);
+        exportNoticeEl.textContent = t('export.notice.pngSingle', { pages: pageCount, width: widthText, height: heightText });
         exportNoticeEl.style.display = 'block';
       } else {
         clearExportNotice();
@@ -801,20 +1190,20 @@
       btnClearRects.disabled = true;
       resetExportControls();
       setZoomControlsEnabled(false);
-      setFileDropStatus(DEFAULT_DROP_TEXT, false);
+      setFileDropStatus(getDefaultDropText(), false);
     }
 
     async function openDocument(file) {
       if (!file) return false;
-      const name = file.name || 'documento';
+      const name = (file && file.name) ? file.name : getDefaultDocumentBase();
       const lowerName = name.toLowerCase();
       const type = (file.type || '').toLowerCase();
       const isPdf = type === 'application/pdf' || lowerName.endsWith('.pdf');
       const isImage = type.startsWith('image/') || SUPPORTED_IMAGE_REGEX.test(lowerName);
 
       if (!isPdf && !isImage) {
-        alert('Selecciona un archivo PDF o una imagen (PNG, JPG, WEBP…).');
-        setFileDropStatus(DEFAULT_DROP_TEXT, false);
+        alert(t('alerts.invalidFileType'));
+        setFileDropStatus(getDefaultDropText(), false);
         return false;
       }
 
@@ -823,22 +1212,22 @@
         try {
           arrayBuf = await file.arrayBuffer();
         } catch (err) {
-          console.error('No se pudo leer el archivo soltado/seleccionado.', err);
-          alert('No se pudo leer el archivo. Prueba con otro PDF.');
-          setFileDropStatus(DEFAULT_DROP_TEXT, false);
+          console.error(t('alerts.fileReadErrorLog'), err);
+          alert(t('alerts.fileReadFailed'));
+          setFileDropStatus(getDefaultDropText(), false);
           return false;
         }
         const loaded = await loadPdfFromArrayBuffer(arrayBuf, name);
-        setFileDropStatus(loaded ? name : DEFAULT_DROP_TEXT, loaded);
+        setFileDropStatus(loaded ? name : getDefaultDropText(), loaded);
         return loaded;
       }
 
       const loaded = await loadImageDocument(file);
-      setFileDropStatus(loaded ? name : DEFAULT_DROP_TEXT, loaded);
+      setFileDropStatus(loaded ? name : getDefaultDropText(), loaded);
       return loaded;
     }
 
-    async function loadPdfFromArrayBuffer(arrayBuf, fileName = 'documento.pdf') {
+    async function loadPdfFromArrayBuffer(arrayBuf, fileName = getDefaultDocumentName('.pdf')) {
       const targetName = forceExtension(sanitizeFileName(fileName), '.pdf');
       const loadingTask = pdfjsLib.getDocument({
         data: arrayBuf,
@@ -849,8 +1238,9 @@
       try {
         pdfDoc = await loadingTask.promise;
       } catch (err) {
-        console.error('Error cargando PDF', err);
-        alert('No se pudo abrir el PDF: ' + (err && err.message ? err.message : err));
+        console.error(t('alerts.pdfLoadErrorLog'), err);
+        const message = err && err.message ? err.message : String(err);
+        alert(t('alerts.pdfOpenError', { error: message }));
         return false;
       }
       resetViewerState();
@@ -890,8 +1280,8 @@
         objectUrl = URL.createObjectURL(file);
         image = await loadImageElement(objectUrl);
       } catch (err) {
-        console.error('No se pudo cargar la imagen seleccionada.', err);
-        alert('No se pudo abrir la imagen. Prueba con otro archivo.');
+        console.error(t('alerts.imageLoadErrorLog'), err);
+        alert(t('alerts.imageOpenError'));
         if (objectUrl) URL.revokeObjectURL(objectUrl);
         return false;
       }
@@ -899,13 +1289,13 @@
         URL.revokeObjectURL(objectUrl);
       }
       if (!image) {
-        alert('No se pudo abrir la imagen.');
+        alert(t('alerts.imageGenericError'));
         return false;
       }
       const width = image.naturalWidth || image.width;
       const height = image.naturalHeight || image.height;
       if (!width || !height) {
-        alert('No se pudo determinar el tamaño de la imagen.');
+        alert(t('alerts.imageSizeUnknown'));
         return false;
       }
 
@@ -1254,10 +1644,10 @@
     }
 
     function sanitizeFileName(name) {
-      if (!name || typeof name !== 'string') return 'documento';
+      if (!name || typeof name !== 'string') return getDefaultDocumentBase();
       const invalid = /[\\/:*?"<>|]+/g;
       const cleaned = name.replace(invalid, '_').trim();
-      return cleaned || 'documento';
+      return cleaned || getDefaultDocumentBase();
     }
 
     function ensureExtension(name, ext) {
@@ -1286,6 +1676,134 @@
       const base = match ? safeName.slice(0, -match[0].length) : safeName;
       const ext = normalizedExt || (match ? match[0] : '');
       return `${base}_anonim${ext}`;
+    }
+
+    function t(key, vars = {}, localeOverride) {
+      const locale = normalizeLocale(localeOverride) || currentLocale || FALLBACK_LOCALE;
+      const dict = TRANSLATIONS[locale] || TRANSLATIONS[FALLBACK_LOCALE] || {};
+      const fallbackDict = TRANSLATIONS[FALLBACK_LOCALE] || {};
+      let template = dict[key];
+      if (template === undefined) {
+        template = fallbackDict[key];
+      }
+      if (template === undefined) {
+        return '';
+      }
+      const text = String(template);
+      return text.replace(/\{(\w+)\}/g, (_, name) => (name in vars ? String(vars[name]) : ''));
+    }
+
+    function normalizeLocale(locale) {
+      if (!locale) return null;
+      const lower = String(locale).toLowerCase();
+      if (SUPPORTED_LOCALES.includes(lower)) return lower;
+      const base = lower.split('-')[0];
+      return SUPPORTED_LOCALES.includes(base) ? base : null;
+    }
+
+    function detectInitialLocale() {
+      try {
+        const stored = normalizeLocale(localStorage.getItem(LANG_STORAGE_KEY));
+        if (stored) return stored;
+      } catch (err) {
+        // storage might be unavailable
+      }
+      const fromNavigator = Array.isArray(navigator.languages)
+        ? navigator.languages.map(normalizeLocale).find(Boolean)
+        : normalizeLocale(navigator.language);
+      return fromNavigator || FALLBACK_LOCALE;
+    }
+
+    function applyTranslations(root = document) {
+      const elements = root.querySelectorAll('*');
+      for (const el of elements) {
+        const dataset = el.dataset;
+        if (!dataset) continue;
+        const needsTranslation = Object.keys(dataset).some((key) => key.startsWith('i18n'));
+        if (needsTranslation) {
+          translateElement(el);
+        }
+      }
+    }
+
+    function translateElement(el) {
+      if (!el || !el.dataset) return;
+      const { dataset } = el;
+      if (dataset.i18n) {
+        const value = t(dataset.i18n);
+        if (dataset.i18nType === 'html') {
+          el.innerHTML = value;
+        } else {
+          el.textContent = value;
+        }
+      }
+      for (const [dataKey, valueKey] of Object.entries(dataset)) {
+        if (!dataKey.startsWith('i18nAttr')) continue;
+        const rawName = dataKey.slice('i18nAttr'.length);
+        if (!rawName) continue;
+        const attrName = toAttrName(rawName);
+        if (!attrName) continue;
+        el.setAttribute(attrName, t(valueKey));
+      }
+    }
+
+    function toAttrName(rawName) {
+      if (!rawName) return '';
+      return rawName.replace(/([A-Z])/g, (match, _grp, offset) => (offset ? '-' : '') + match.toLowerCase());
+    }
+
+    function formatNumber(value) {
+      const code = LOCALE_INTL[currentLocale] || LOCALE_INTL[FALLBACK_LOCALE] || 'en';
+      return new Intl.NumberFormat(code).format(value);
+    }
+
+    function refreshExportModeLabels() {
+      if (!exportModeEl) return;
+      const options = Array.from(exportModeEl.options);
+      for (const option of options) {
+        const key = option.dataset.i18nKey;
+        if (key) {
+          option.textContent = t(key);
+        }
+      }
+    }
+
+    function applyLocale(locale, { skipPersist = false, initial = false } = {}) {
+      const normalized = normalizeLocale(locale) || FALLBACK_LOCALE;
+      if (!skipPersist) {
+        try {
+          localStorage.setItem(LANG_STORAGE_KEY, normalized);
+        } catch (err) {
+          // storage might be unavailable; ignore
+        }
+      }
+      currentLocale = normalized;
+      document.documentElement.lang = normalized;
+      document.title = t('app.windowTitle');
+      if (languageSelect && languageSelect.value !== normalized) {
+        languageSelect.value = normalized;
+      }
+      applyTranslations();
+      refreshExportModeLabels();
+      updateExportButtonLabel();
+      updateExportNotice();
+      setControlsHidden(document.body.classList.contains('controlsHidden'));
+      if (!docType && !fileDrop.classList.contains('hasFile')) {
+        setFileDropStatus(getDefaultDropText(), false);
+      }
+    }
+
+    function getDefaultDropText() {
+      return t('drop.default');
+    }
+
+    function getDefaultDocumentBase() {
+      const base = t('defaults.document');
+      return base || 'documento';
+    }
+
+    function getDefaultDocumentName(ext = '.pdf') {
+      return ensureExtension(getDefaultDocumentBase(), ext);
     }
 
     function guessImageExtension(file) {
