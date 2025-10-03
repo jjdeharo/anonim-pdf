@@ -1,3 +1,7 @@
+/**
+ * Anonimizador de PDF — Copyright (C) 2025 Juan José de Haro
+ * Licencia del código: GNU Affero General Public License v3.0 (AGPL-3.0)
+ */
 import { test, expect } from '@playwright/test';
 import path from 'path';
 import { pathToFileURL } from 'url';

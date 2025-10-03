@@ -26,3 +26,8 @@ npm test
 ```
 
 La aplicación utiliza pdf.js y jsPDF desde la carpeta `vendor`, por lo que funciona sin conexión.
+
+## Licencias
+
+- **Código**: publicado bajo [GNU Affero General Public License v3.0](LICENSE.txt). © 2025 Juan José de Haro.
+- **Contenidos educativos** (textos y recursos propios) disponibles bajo [Creative Commons Atribución 4.0 Internacional](https://creativecommons.org/licenses/by/4.0/), salvo indicación en contrario.
