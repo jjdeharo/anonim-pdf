@@ -49,7 +49,6 @@
     .panelControls { position: relative; transition: transform .35s ease, opacity .25s ease; }
     .panelTopRow { align-items: stretch; }
     .panelTopRow .fileDrop { flex: 1 1 auto; }
-    .rectSettings .applyAll { display: flex; align-items: center; gap: .4rem; }
     #viewerContainer { position: relative; overflow-y: auto; max-height: 75vh; padding: 1rem .5rem .5rem; }
     #pagesContainer { display: flex; flex-direction: column; gap: 1.5rem; align-items: center; }
     .viewerToolbar { position: sticky; top: .75rem; z-index: 6; display: flex; align-items: center; justify-content: center; gap: .75rem; padding: 0 1.5rem; margin-bottom: .25rem; }
@@ -117,7 +116,7 @@
       </div>
       <fieldset class="rectSettings" style="margin-bottom:.75rem">
         <legend>Uso</legend>
-        <p class="muted" style="margin:0">Arrastra con el ratón para definir rectángulos sobre el nombre. Doble clic borra el último rectángulo. En PDF, dibuja con el botón derecho para aplicar el rectángulo a todas las páginas.</p>
+        <p class="muted" style="margin:0">Arrastra con el ratón para definir rectángulos sobre el nombre. Selecciona con el botón derecho para aplicar el mismo rectángulo a todas las páginas del PDF. Doble clic borra el último rectángulo.</p>
       </fieldset>
       <fieldset class="rectSettings">
         <legend>Dibujo del rectángulo</legend>
@@ -125,10 +124,6 @@
           <label>Grosor del borde: <input id="strokeW" type="number" min="1" max="8" value="2" style="width:4.5rem" /></label>
           <div class="rectStack">
             <label>Opacidad tapa: <input id="opacity" type="number" min="0.1" max="1" step="0.1" value="1" style="width:4.5rem" /></label>
-            <label class="muted applyAll">
-              <input id="applyAllPages" type="checkbox" />
-              Aplicar el rectángulo a todas las páginas
-            </label>
           </div>
           <select id="maskColor" title="Color de la máscara">
             <option value="#000000" selected>Negro</option>
@@ -239,7 +234,6 @@
     const strokeWEl = document.getElementById('strokeW');
     const maskColorEl = document.getElementById('maskColor');
     const namingRadios = document.querySelectorAll('input[name="namingOption"]');
-    const applyAllEl = document.getElementById('applyAllPages');
     const zoomOutBtn = document.getElementById('zoomOut');
     const zoomInBtn = document.getElementById('zoomIn');
     const zoomFitBtn = document.getElementById('zoomFit');
@@ -414,9 +408,6 @@
     }
     setZoomControlsEnabled(false);
     updateZoomDisplay();
-
-    applyAllEl.checked = false;
-    toggleApplyAllState();
 
     zoomInBtn.addEventListener('click', () => {
       setZoomFactor(zoomFactor + ZOOM_STEP).catch((err) => console.error(err));
@@ -780,14 +771,6 @@
       exportNoticeEl.style.display = 'none';
     }
 
-    function toggleApplyAllState() {
-      const multiplePages = docType === 'pdf' && pageCount > 1;
-      applyAllEl.disabled = !multiplePages;
-      if (!multiplePages) {
-        applyAllEl.checked = false;
-      }
-    }
-
     function resetViewerState() {
       rectsByPage = {};
       pageViews.clear();
@@ -802,7 +785,6 @@
       btnClearRects.disabled = true;
       resetExportControls();
       setZoomControlsEnabled(false);
-      toggleApplyAllState();
     }
 
     async function openDocument(file) {
@@ -880,7 +862,6 @@
       configureExportForDoc('pdf');
       setZoomControlsEnabled(true);
       updateZoomDisplay();
-      toggleApplyAllState();
       return true;
     }
 
@@ -930,7 +911,6 @@
       configureExportForDoc('image');
       setZoomControlsEnabled(true);
       updateZoomDisplay();
-      toggleApplyAllState();
       return true;
     }
 
@@ -1045,7 +1025,7 @@
       const rect = state.previewRect;
       if (rect && rect.w > 4 && rect.h > 4) {
         rectsByPage[pageNumber].push({ ...rect });
-        const applyAll = (docType === 'pdf' && pageCount > 1) && (applyAllEl.checked || state.applyAll);
+        const applyAll = docType === 'pdf' && pageCount > 1 && state.applyAll;
         if (applyAll) {
           applyRectToAllPages(rect, pageNumber);
         }
