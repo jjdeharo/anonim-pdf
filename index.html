@@ -16,7 +16,7 @@
     header { position: sticky; top: 0; padding: .75rem 1rem; border-bottom: 1px solid #8883; backdrop-filter: blur(6px); }
     main { display: grid; grid-template-columns: 360px 1fr; gap: 1rem; padding: 1rem; transition: grid-template-columns .35s ease; }
     @media (max-width: 900px){ main { grid-template-columns: 1fr; } }
-    .panel { border: 1px solid #8884; border-radius: .75rem; padding: .75rem; }
+    .panel { border: 1px solid #8884; border-radius: .75rem; padding: .75rem; background: color-mix(in srgb, canvas 96%, canvastext 4%); }
     .row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
     button, input[type="number"], input[type="file"], select { padding: .5rem .6rem; border-radius: .5rem; border: 1px solid #8884; background: inherit; }
     button { cursor: pointer; }
@@ -27,12 +27,14 @@
     body.controlsHidden #toggleControls .icon-show { display: block; }
     .panelToggle:hover { background: color-mix(in srgb, canvas 88%, #16a34a 12%); }
     .panelToggle:focus-visible { outline: 2px solid #16a34a; outline-offset: 2px; }
-    #export,
-    #btnClearRects { background: color-mix(in srgb, canvas 85%, #16a34a 15%); border-color: color-mix(in srgb, #16a34a 35%, transparent 65%); color: color-mix(in srgb, canvastext 88%, #0f2716 12%); }
-    #export { font-weight: 600; }
+    #export { font-weight: 600; background: #5cb85c; border-color: #4aa34a; color: #ffffff; }
+    #export:hover:not(:disabled) { background: #4aa34a; border-color: #3f8d3f; }
+    #btnClearRects { background: color-mix(in srgb, canvas 90%, #16a34a 10%); border-color: color-mix(in srgb, #16a34a 22%, transparent 78%); color: color-mix(in srgb, canvastext 90%, #0f2716 10%); }
     #export:disabled,
-    #btnClearRects:disabled { opacity: .6; }
+    #btnClearRects:disabled { opacity: .6; cursor: not-allowed; }
     .fileDrop { flex: 1 1 200px; display: flex; align-items: center; justify-content: center; gap: .5rem; border: 1px dashed color-mix(in srgb, canvastext 40%, transparent 60%); border-radius: .65rem; padding: .6rem .75rem; min-height: 3.25rem; background: color-mix(in srgb, canvas 94%, #16a34a 6%); cursor: pointer; transition: border-color .2s ease, background .2s ease, color .2s ease; text-align: center; }
+    .fileDrop.hasFile { background: inherit; border-style: solid; border-color: color-mix(in srgb, #5cb85c 55%, transparent 45%); color: #5cb85c; font-weight: 600; }
+    .fileDrop.hasFile:hover { border-color: color-mix(in srgb, #4aa34a 60%, transparent 40%); background: inherit; color: #4aa34a; }
     .fileDrop:hover { border-color: color-mix(in srgb, #16a34a 55%, transparent 45%); background: color-mix(in srgb, canvas 90%, #16a34a 10%); }
     .fileDrop.dragging { border-color: color-mix(in srgb, #16a34a 70%, transparent 30%); background: color-mix(in srgb, canvas 85%, #16a34a 15%); color: color-mix(in srgb, canvastext 92%, #0f2716 8%); }
     .fileDropInput { display: none; }
@@ -42,11 +44,11 @@
     .namingField { display: flex; gap: .75rem; flex-wrap: wrap; align-items: center; }
     .namingField legend { font-size: .92rem; font-weight: 600; margin-right: .25rem; }
     .namingField label { display: inline-flex; align-items: center; gap: .35rem; }
-    .rectSettings { border: 1px solid #8885; border-radius: .65rem; padding: .6rem .75rem; margin-bottom: .75rem; }
+    .rectSettings { border: 1px solid #8885; border-radius: .65rem; padding: .6rem .75rem; margin-bottom: .75rem; background: #ffffff; }
     .rectSettings legend { font-size: .92rem; font-weight: 600; padding: 0 .35rem; }
     .rectSettings .rectControls { display: flex; gap: .75rem; flex-wrap: wrap; align-items: flex-start; }
     .rectSettings .rectStack { display: flex; flex-direction: column; gap: .4rem; min-width: 11rem; }
-    .panelControls { position: relative; transition: transform .35s ease, opacity .25s ease; }
+    .panelControls { position: relative; transition: transform .35s ease, opacity .25s ease; background: color-mix(in srgb, canvas 92%, canvastext 8%); }
     .panelTopRow { align-items: stretch; }
     .panelTopRow .fileDrop { flex: 1 1 auto; }
     #viewerContainer { position: relative; overflow-y: auto; max-height: 75vh; padding: 1rem .5rem .5rem; }
@@ -59,6 +61,8 @@
     body.controlsHidden .panelControls { transform: translateX(-2rem); opacity: 0; pointer-events: none; }
     body.controlsHidden #showControls { opacity: 1; visibility: visible; pointer-events: auto; }
     @media (prefers-color-scheme: light) {
+      .panelControls { background: #f2f3f5; }
+      .panel { background: #f9fafb; }
       #zoomOverlay { background: color-mix(in srgb, canvas 95%, #666 5%); border-color: color-mix(in srgb, #000 18%, transparent 82%); box-shadow: 0 6px 18px #0002; }
       #zoomOverlay button { background: color-mix(in srgb, canvas 98%, #666 2%); border-color: color-mix(in srgb, #000 25%, transparent 75%); color: color-mix(in srgb, canvastext 92%, #000 8%); }
       #zoomOverlay button:disabled { opacity: .55; }
@@ -294,7 +298,7 @@
       : null;
 
     const DEFAULT_DROP_TEXT = 'Arrastra un PDF o imagen o haz clic para abrirlo';
-    fileDropText.textContent = DEFAULT_DROP_TEXT;
+    setFileDropStatus(DEFAULT_DROP_TEXT, false);
     resetExportControls();
 
     const storedControlsHidden = localStorage.getItem(CONTROLS_HIDDEN_KEY) === 'true';
@@ -697,9 +701,19 @@
       btnExport.disabled = true;
       btnExport.textContent = 'Exportar anonimizado';
       exportModeEl.value = '';
-      exportModeEl.hidden = false;
+      exportModeEl.hidden = true;
+      exportModeEl.style.display = 'none';
       exportModeEl.dataset.singleLabel = '';
       clearExportNotice();
+    }
+
+    function setFileDropStatus(label, loaded) {
+      fileDropText.textContent = label;
+      if (loaded) {
+        fileDrop.classList.add('hasFile');
+      } else {
+        fileDrop.classList.remove('hasFile');
+      }
     }
 
     function configureExportForDoc(type) {
@@ -726,11 +740,13 @@
         defaultValue = 'png';
       }
       const hasMultipleOptions = optionList.length > 1;
-      exportModeEl.disabled = !hasMultipleOptions;
-      exportModeEl.hidden = !hasMultipleOptions;
       btnExport.disabled = false;
       exportModeEl.value = defaultValue;
       exportModeEl.dataset.singleLabel = hasMultipleOptions ? '' : (optionList[0]?.label || '');
+      const showSelect = type === 'pdf' && hasMultipleOptions;
+      exportModeEl.disabled = !showSelect;
+      exportModeEl.hidden = !showSelect;
+      exportModeEl.style.display = showSelect ? 'inline-block' : 'none';
       updateExportButtonLabel();
       if (type !== 'pdf') {
         localStorage.removeItem(EXPORT_MODE_KEY);
@@ -785,6 +801,7 @@
       btnClearRects.disabled = true;
       resetExportControls();
       setZoomControlsEnabled(false);
+      setFileDropStatus(DEFAULT_DROP_TEXT, false);
     }
 
     async function openDocument(file) {
@@ -797,7 +814,7 @@
 
       if (!isPdf && !isImage) {
         alert('Selecciona un archivo PDF o una imagen (PNG, JPG, WEBP…).');
-        fileDropText.textContent = DEFAULT_DROP_TEXT;
+        setFileDropStatus(DEFAULT_DROP_TEXT, false);
         return false;
       }
 
@@ -808,16 +825,16 @@
         } catch (err) {
           console.error('No se pudo leer el archivo soltado/seleccionado.', err);
           alert('No se pudo leer el archivo. Prueba con otro PDF.');
-          fileDropText.textContent = DEFAULT_DROP_TEXT;
+          setFileDropStatus(DEFAULT_DROP_TEXT, false);
           return false;
         }
         const loaded = await loadPdfFromArrayBuffer(arrayBuf, name);
-        fileDropText.textContent = loaded ? name : DEFAULT_DROP_TEXT;
+        setFileDropStatus(loaded ? name : DEFAULT_DROP_TEXT, loaded);
         return loaded;
       }
 
       const loaded = await loadImageDocument(file);
-      fileDropText.textContent = loaded ? name : DEFAULT_DROP_TEXT;
+      setFileDropStatus(loaded ? name : DEFAULT_DROP_TEXT, loaded);
       return loaded;
     }
 
