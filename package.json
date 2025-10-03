@@ -1,0 +1,19 @@
+{
+  "name": "anonim-pdf",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Juan José de Haro <jjdeharo@gmail.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.55.1",
+    "playwright": "^1.55.1"
+  },
+  "dependencies": {
+    "pdfjs-dist": "^2.16.105"
+  }
+}

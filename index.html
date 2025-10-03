@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Anonimizador de PDF — cliente</title>
+  <style>
+    :root { color-scheme: light dark; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji"; margin: 0; }
+    header { position: sticky; top: 0; padding: .75rem 1rem; border-bottom: 1px solid #8883; backdrop-filter: blur(6px); }
+    main { display: grid; grid-template-columns: 360px 1fr; gap: 1rem; padding: 1rem; }
+    @media (max-width: 900px){ main { grid-template-columns: 1fr; } }
+    .panel { border: 1px solid #8884; border-radius: .75rem; padding: .75rem; }
+    .row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+    button, input[type="number"], input[type="file"], select { padding: .5rem .6rem; border-radius: .5rem; border: 1px solid #8884; background: inherit; }
+    button { cursor: pointer; }
+    #export,
+    #btnClearRects { background: color-mix(in srgb, canvas 85%, #3b82f6 15%); border-color: color-mix(in srgb, #3b82f6 35%, transparent 65%); color: color-mix(in srgb, canvastext 88%, #0d1a2b 12%); }
+    #export:disabled,
+    #btnClearRects:disabled { opacity: .6; }
+    .fileDrop { flex: 1 1 200px; display: flex; align-items: center; justify-content: center; gap: .5rem; border: 1px dashed color-mix(in srgb, canvastext 40%, transparent 60%); border-radius: .65rem; padding: .6rem .75rem; min-height: 3.25rem; background: color-mix(in srgb, canvas 94%, #3b82f6 6%); cursor: pointer; transition: border-color .2s ease, background .2s ease, color .2s ease; text-align: center; }
+    .fileDrop:hover { border-color: color-mix(in srgb, #3b82f6 55%, transparent 45%); background: color-mix(in srgb, canvas 90%, #3b82f6 10%); }
+    .fileDrop.dragging { border-color: color-mix(in srgb, #3b82f6 70%, transparent 30%); background: color-mix(in srgb, canvas 85%, #3b82f6 15%); color: color-mix(in srgb, canvastext 92%, #0d1a2b 8%); }
+    .fileDropInput { display: none; }
+    .muted { opacity: .8; font-size: .92rem; }
+    .kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; background: #8882; border: 1px solid #8884; padding: 0 .35rem; border-radius: .35rem; }
+    fieldset { border: none; margin: 0; padding: 0; }
+    .namingField { display: flex; gap: .75rem; flex-wrap: wrap; align-items: center; }
+    .namingField legend { font-size: .92rem; font-weight: 600; margin-right: .25rem; }
+    .namingField label { display: inline-flex; align-items: center; gap: .35rem; }
+    .rectSettings { border: 1px solid #8885; border-radius: .65rem; padding: .6rem .75rem; margin-bottom: .75rem; }
+    .rectSettings legend { font-size: .92rem; font-weight: 600; padding: 0 .35rem; }
+    .rectSettings .rectControls { display: flex; gap: .75rem; flex-wrap: wrap; align-items: flex-start; }
+    .rectSettings .rectStack { display: flex; flex-direction: column; gap: .4rem; min-width: 11rem; }
+    .rectSettings .applyAll { display: flex; align-items: center; gap: .4rem; }
+    #viewerContainer { position: relative; overflow-y: auto; max-height: 75vh; padding: .5rem; }
+    #pagesContainer { display: flex; flex-direction: column; gap: 1.5rem; align-items: center; }
+    #zoomOverlay { position: sticky; top: .75rem; right: .75rem; margin-left: auto; align-self: flex-end; z-index: 5; display: inline-flex; gap: .5rem; align-items: center; padding: .35rem .6rem; border-radius: .6rem; border: 1px solid #8886; box-shadow: 0 6px 16px #0005; background: color-mix(in srgb, canvas 65%, #222 35%); backdrop-filter: blur(6px); }
+    #zoomOverlay button { background: color-mix(in srgb, canvas 55%, #000 45%); color: inherit; border-radius: .5rem; border: 1px solid #8886; min-width: 2.1rem; }
+    @media (prefers-color-scheme: light) {
+      #zoomOverlay { background: color-mix(in srgb, canvas 95%, #666 5%); border-color: color-mix(in srgb, #000 18%, transparent 82%); box-shadow: 0 6px 18px #0002; }
+      #zoomOverlay button { background: color-mix(in srgb, canvas 98%, #666 2%); border-color: color-mix(in srgb, #000 25%, transparent 75%); color: color-mix(in srgb, canvastext 92%, #000 8%); }
+      #zoomOverlay button:disabled { opacity: .55; }
+    }
+    #zoomOverlay button:disabled { opacity: .45; }
+    .pageView { position: relative; }
+    .pageView img { display: block; border: 1px solid #8884; border-radius: .5rem; background: #fff; user-select: none; }
+    .pageView .pdfPageCanvas { display: none; }
+    .pageView .pdfOverlay { position: absolute; inset: 0; pointer-events: auto; border-radius: .5rem; cursor: crosshair; z-index: 2; display: block; }
+    .pageView.active { outline: 2px solid #3b82f6; outline-offset: 6px; }
+    .badget { font-size: .85rem; opacity: .8; }
+    footer { padding: .75rem 1rem; border-top: 1px solid #8883; }
+  </style>
+  <!-- Bibliotecas locales para funcionar sin conexión -->
+  <script src="./vendor/pdfjs/pdf.v216.min.js" defer></script>
+  <script src="./vendor/jspdf/jspdf.umd.min.js" defer></script>
+</head>
+<body>
+  <header class="row">
+    <strong>Anonimizador de PDF (100% local)</strong>
+    <span class="badget">Privado: no sube el archivo a ningún servidor</span>
+  </header>
+
+  <main>
+    <section class="panel">
+      <div class="row" style="margin-bottom:.5rem">
+        <div id="fileDrop" class="fileDrop">
+          <input id="file" class="fileDropInput" type="file" accept="application/pdf" />
+          <span>Arrastra un PDF o haz clic para abrirlo</span>
+        </div>
+        <button id="btnClearRects" disabled>Limpiar rectángulos de esta página</button>
+      </div>
+      <div class="row" style="margin-bottom:.5rem; justify-content:flex-start">
+        <div><span>Página </span><span id="pageNum">-</span><span> / </span><span id="pageCount">-</span></div>
+      </div>
+      <fieldset class="rectSettings">
+        <legend>Dibujo del rectángulo</legend>
+        <div class="rectControls">
+          <label>Grosor del borde: <input id="strokeW" type="number" min="1" max="8" value="2" style="width:4.5rem" /></label>
+          <div class="rectStack">
+            <label>Opacidad tapa: <input id="opacity" type="number" min="0.1" max="1" step="0.1" value="1" style="width:4.5rem" /></label>
+            <label class="muted applyAll">
+              <input id="applyAllPages" type="checkbox" />
+              Aplicar el rectángulo a todas las páginas
+            </label>
+          </div>
+          <select id="maskColor" title="Color de la máscara">
+            <option value="#000000" selected>Negro</option>
+            <option value="#ffffff">Blanco</option>
+            <option value="#888888">Gris</option>
+          </select>
+        </div>
+      </fieldset>
+      <div class="row" style="margin-bottom:.5rem">
+        <button id="export" disabled>Exportar PDF anonimizado</button>
+        <a id="dlLink" download style="display:none"></a>
+      </div>
+      <fieldset class="namingField" style="margin-bottom:.75rem">
+        <legend>Nombre del archivo exportado</legend>
+        <label><input type="radio" name="namingOption" value="derived" checked>Mismo nombre + _anonim</label>
+        <label><input type="radio" name="namingOption" value="fixed">anonim.pdf</label>
+      </fieldset>
+      <p class="muted">
+        Uso: arrastra con el ratón para definir rectángulos sobre el nombre. Doble clic borra el último rectángulo.
+      </p>
+
+      <details>
+        <summary>Notas sobre seguridad del anonimizado</summary>
+        <ul>
+          <li>La exportación genera un PDF de imágenes (rasterizado). El texto original desaparece: ya no es seleccionable ni extraíble como texto.</li>
+          <li>Esto es adecuado para ocultar nombres propios de trabajos entregados, con la contrapartida de mayor tamaño y pérdida de accesibilidad.</li>
+          <li>Uso totalmente local en tu navegador.</li>
+        </ul>
+      </details>
+
+    </section>
+
+    <section class="panel">
+      <div id="viewerContainer">
+        <div id="zoomOverlay">
+          <span>Zoom:</span>
+          <button id="zoomOut" type="button" disabled>-</button>
+          <span id="zoomDisplay">100%</span>
+          <button id="zoomIn" type="button" disabled>+</button>
+          <button id="zoomFit" type="button" disabled>Ajustar ancho</button>
+        </div>
+        <div id="pagesContainer"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="muted"></footer>
+
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const havePdfjs = typeof window.pdfjsLib !== 'undefined';
+    if (!havePdfjs) {
+      alert('No se pudo cargar pdf.js. Comprueba la conexión o políticas de bloqueadores. He cambiado al build legacy para exponer "pdfjsLib".');
+      return;
+    }
+
+    const WORKER_SRC = './vendor/pdfjs/pdf.worker.v216.min.js';
+    try {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = WORKER_SRC;
+    } catch (err) {
+      console.warn('Fallo al configurar worker pdf.js, usando modo sin worker.', err);
+      pdfjsLib.disableWorker = true;
+    }
+
+    const viewerContainer = document.getElementById('viewerContainer');
+    const pagesContainer = document.getElementById('pagesContainer');
+    const fileDrop = document.getElementById('fileDrop');
+    const fileDropText = fileDrop.querySelector('span');
+    const fileInput = document.getElementById('file');
+    const pageNumEl = document.getElementById('pageNum');
+    const pageCountEl = document.getElementById('pageCount');
+    const btnExport = document.getElementById('export');
+    const btnClearRects = document.getElementById('btnClearRects');
+    const opacityEl = document.getElementById('opacity');
+    const strokeWEl = document.getElementById('strokeW');
+    const maskColorEl = document.getElementById('maskColor');
+    const namingRadios = document.querySelectorAll('input[name="namingOption"]');
+    const applyAllEl = document.getElementById('applyAllPages');
+    const zoomOutBtn = document.getElementById('zoomOut');
+    const zoomInBtn = document.getElementById('zoomIn');
+    const zoomFitBtn = document.getElementById('zoomFit');
+    const zoomDisplay = document.getElementById('zoomDisplay');
+
+    let pdfDoc = null;
+    let scale = 1;
+    let rectsByPage = {};
+    let currentFileName = 'documento.pdf';
+    let namingStrategy = 'derived';
+    let fitScale = 1;
+    let basePageWidth = 0;
+    let zoomFactor = 1;
+    let resizeTimeout = null;
+    const MIN_ZOOM = 0.6;
+    const MAX_ZOOM = 3;
+    const ZOOM_STEP = 0.2;
+    const ZOOM_KEY = 'anonim-pdf-zoom';
+    let activePage = 1;
+    const pageViews = new Map();
+    const pageStates = new Map();
+
+    const observer = 'IntersectionObserver' in window
+      ? new IntersectionObserver((entries) => {
+          let nextPage = activePage;
+          let maxRatio = 0;
+          for (const entry of entries) {
+            if (entry.isIntersecting && entry.intersectionRatio > maxRatio) {
+              nextPage = Number(entry.target.dataset.page);
+              maxRatio = entry.intersectionRatio;
+            }
+          }
+          if (nextPage !== activePage && pageViews.has(nextPage)) {
+            setActivePage(nextPage);
+          }
+        }, { root: viewerContainer, threshold: [0.2, 0.45, 0.7] })
+      : null;
+
+    const DEFAULT_DROP_TEXT = 'Arrastra un PDF o haz clic para abrirlo';
+    fileDropText.textContent = DEFAULT_DROP_TEXT;
+
+    fileDrop.addEventListener('click', () => fileInput.click());
+    fileDrop.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      fileDrop.classList.add('dragging');
+    });
+    fileDrop.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      fileDrop.classList.add('dragging');
+    });
+    fileDrop.addEventListener('dragleave', (e) => {
+      const next = e.relatedTarget;
+      if (!next || !fileDrop.contains(next)) {
+        fileDrop.classList.remove('dragging');
+      }
+    });
+    fileDrop.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      fileDrop.classList.remove('dragging');
+      const files = e.dataTransfer?.files;
+      if (!files || !files.length) return;
+      const file = files[0];
+      if (!await openPdfFile(file)) return;
+      try {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        fileInput.files = dt.files;
+      } catch (err) {
+        console.warn('No se pudo sincronizar input de archivo con el drop.', err);
+      }
+    });
+
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      await openPdfFile(file);
+      e.target.value = '';
+    });
+
+    btnClearRects.addEventListener('click', () => {
+      if (!pdfDoc) return;
+      rectsByPage[activePage] = [];
+      drawOverlay(activePage);
+      updateClearButtonState();
+    });
+
+    maskColorEl.addEventListener('change', redrawAllOverlays);
+    opacityEl.addEventListener('change', redrawAllOverlays);
+    strokeWEl.addEventListener('change', redrawAllOverlays);
+
+    const NAMING_KEY = 'anonim-pdf-naming';
+    const APPLY_ALL_KEY = 'anonim-pdf-applyall';
+    const storedNaming = (localStorage.getItem(NAMING_KEY) || '').toLowerCase();
+    if (storedNaming === 'fixed' || storedNaming === 'derived') {
+      namingStrategy = storedNaming;
+    }
+    namingRadios.forEach((radio) => {
+      radio.checked = radio.value === namingStrategy;
+      radio.addEventListener('change', () => {
+        if (radio.checked) {
+          namingStrategy = radio.value === 'fixed' ? 'fixed' : 'derived';
+          localStorage.setItem(NAMING_KEY, namingStrategy);
+        }
+      });
+    });
+
+    const storedZoom = parseFloat(localStorage.getItem(ZOOM_KEY) || '');
+    if (!Number.isNaN(storedZoom)) {
+      zoomFactor = clamp(storedZoom, MIN_ZOOM, MAX_ZOOM);
+    }
+    setZoomControlsEnabled(false);
+    updateZoomDisplay();
+
+    const storedApplyAll = localStorage.getItem(APPLY_ALL_KEY);
+    if (storedApplyAll === 'true') {
+      applyAllEl.checked = true;
+    }
+    applyAllEl.addEventListener('change', () => {
+      localStorage.setItem(APPLY_ALL_KEY, applyAllEl.checked ? 'true' : 'false');
+    });
+
+    zoomInBtn.addEventListener('click', () => {
+      setZoomFactor(zoomFactor + ZOOM_STEP).catch((err) => console.error(err));
+    });
+    zoomOutBtn.addEventListener('click', () => {
+      setZoomFactor(zoomFactor - ZOOM_STEP).catch((err) => console.error(err));
+    });
+    zoomFitBtn.addEventListener('click', () => {
+      setZoomFactor(1).catch((err) => console.error(err));
+    });
+
+    document.getElementById('export').addEventListener('click', async () => {
+      if (!pdfDoc) return;
+      const { jsPDF } = window.jspdf;
+      const pdfOut = new jsPDF({ unit: 'pt', compress: true });
+      pdfOut.deletePage(1); // eliminamos la página inicial por defecto para controlar tamaño por página
+
+      for (let p = 1; p <= pdfDoc.numPages; p++) {
+        const page = await pdfDoc.getPage(p);
+        const viewport = page.getViewport({ scale });
+
+        pdfOut.addPage([viewport.width, viewport.height]);
+        pdfOut.setPage(pdfOut.getNumberOfPages());
+
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = viewport.width; pageCanvas.height = viewport.height;
+        const pctx = pageCanvas.getContext('2d');
+        await page.render({ canvasContext: pctx, viewport }).promise;
+
+        const maskCanvas = document.createElement('canvas');
+        maskCanvas.width = viewport.width; maskCanvas.height = viewport.height;
+        const mctx = maskCanvas.getContext('2d');
+        const rects = rectsByPage[p] || [];
+        const mask = maskColorEl.value || '#000';
+        const alpha = Math.max(0.1, Math.min(1, Number(opacityEl.value) || 1));
+        mctx.save();
+        for (const r of rects) {
+          mctx.globalAlpha = alpha;
+          mctx.fillStyle = mask;
+          mctx.fillRect(r.x, r.y, r.w, r.h);
+        }
+        mctx.restore();
+
+        pctx.drawImage(maskCanvas, 0, 0);
+
+        const img = pageCanvas.toDataURL('image/jpeg', 0.92);
+        pdfOut.addImage(img, 'JPEG', 0, 0, viewport.width, viewport.height, undefined, 'FAST');
+      }
+
+      const blob = pdfOut.output('blob');
+      const url = URL.createObjectURL(blob);
+      const a = document.getElementById('dlLink');
+      a.href = url;
+      a.download = buildAnonName(currentFileName);
+      a.click();
+      a.style.display = 'none';
+      setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    });
+
+    async function openPdfFile(file) {
+      if (!file) return false;
+      const name = file.name || 'documento.pdf';
+      const isPdf = file.type === 'application/pdf' || name.toLowerCase().endsWith('.pdf');
+      if (!isPdf) {
+        alert('Selecciona un archivo PDF.');
+        return false;
+      }
+      let arrayBuf;
+      try {
+        arrayBuf = await file.arrayBuffer();
+      } catch (err) {
+        console.error('No se pudo leer el archivo soltado/seleccionado.', err);
+        alert('No se pudo leer el archivo. Prueba con otro PDF.');
+        fileDropText.textContent = DEFAULT_DROP_TEXT;
+        return false;
+      }
+      const loaded = await loadPdfFromArrayBuffer(arrayBuf, name);
+      if (loaded) {
+        fileDropText.textContent = name;
+      } else {
+        fileDropText.textContent = DEFAULT_DROP_TEXT;
+      }
+      return loaded;
+    }
+
+    async function loadPdfFromArrayBuffer(arrayBuf, fileName = 'documento.pdf') {
+      currentFileName = sanitizeFileName(fileName);
+      const loadingTask = pdfjsLib.getDocument({
+        data: arrayBuf,
+        cMapUrl: './vendor/pdfjs/cmaps/',
+        cMapPacked: true,
+        standardFontDataUrl: './vendor/pdfjs/standard_fonts/'
+      });
+      try {
+        pdfDoc = await loadingTask.promise;
+      } catch (err) {
+        console.error('Error cargando PDF', err);
+        alert('No se pudo abrir el PDF: ' + (err && err.message ? err.message : err));
+        return false;
+      }
+      rectsByPage = {};
+      pageViews.clear();
+      pageStates.clear();
+      observer?.disconnect();
+      pagesContainer.innerHTML = '';
+
+      const firstPage = await pdfDoc.getPage(1);
+      const baseViewport = firstPage.getViewport({ scale: 1 });
+      basePageWidth = baseViewport.width;
+      fitScale = computeScaleForWidth(basePageWidth);
+      scale = fitScale * zoomFactor;
+
+      await renderPage(1, firstPage);
+      for (let p = 2; p <= pdfDoc.numPages; p++) {
+        await renderPage(p);
+      }
+
+      pageCountEl.textContent = pdfDoc.numPages;
+      setActivePage(1);
+      updateClearButtonState();
+      btnExport.disabled = false;
+      setZoomControlsEnabled(true);
+      updateZoomDisplay();
+      return true;
+    }
+
+    async function renderPage(pageNumber, pageInstance) {
+      const page = pageInstance || await pdfDoc.getPage(pageNumber);
+      const viewport = page.getViewport({ scale });
+      let view = pageViews.get(pageNumber);
+      if (!view) {
+        view = createPageView(pageNumber);
+      }
+
+      const { canvas, overlay, img, ctx, wrapper } = view;
+      const width = viewport.width;
+      const height = viewport.height;
+      canvas.width = width; canvas.height = height;
+      overlay.width = width; overlay.height = height;
+      img.width = width; img.height = height;
+      img.style.width = overlay.style.width = width + 'px';
+      img.style.height = overlay.style.height = height + 'px';
+      wrapper.style.width = width + 'px';
+      wrapper.style.height = height + 'px';
+
+      await page.render({ canvasContext: ctx, viewport }).promise;
+      img.src = canvas.toDataURL('image/png');
+      drawOverlay(pageNumber);
+    }
+
+    function createPageView(pageNumber) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'pageView';
+      wrapper.dataset.page = String(pageNumber);
+
+      const canvas = document.createElement('canvas');
+      canvas.className = 'pdfPageCanvas';
+
+      const img = document.createElement('img');
+      img.className = 'pdfPageImage';
+      img.draggable = false;
+
+      const overlay = document.createElement('canvas');
+      overlay.className = 'pdfOverlay';
+
+      wrapper.append(img, overlay, canvas);
+      pagesContainer.appendChild(wrapper);
+      observer?.observe(wrapper);
+
+      const view = {
+        wrapper,
+        canvas,
+        img,
+        overlay,
+        ctx: canvas.getContext('2d'),
+        octx: overlay.getContext('2d')
+      };
+
+      setupOverlayInteractions(pageNumber, view);
+      pageViews.set(pageNumber, view);
+      return view;
+    }
+
+    function setupOverlayInteractions(pageNumber, view) {
+      const { overlay } = view;
+      overlay.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        const state = getPageState(pageNumber);
+        const { x, y } = getMousePos(e, overlay);
+        state.drawing = true;
+        state.startX = x;
+        state.startY = y;
+        state.previewRect = null;
+        setActivePage(pageNumber);
+      });
+
+      overlay.addEventListener('mousemove', (e) => {
+        const state = getPageState(pageNumber);
+        if (!state.drawing) return;
+        const { x, y } = getMousePos(e, overlay);
+        state.previewRect = normalizeRect(state.startX, state.startY, x, y);
+        drawOverlay(pageNumber);
+      });
+
+      const endDrawing = () => {
+      const state = getPageState(pageNumber);
+      if (!state.drawing) return;
+      state.drawing = false;
+      if (!rectsByPage[pageNumber]) rectsByPage[pageNumber] = [];
+      const rect = state.previewRect;
+      if (rect && rect.w > 4 && rect.h > 4) {
+        rectsByPage[pageNumber].push({ ...rect });
+        if (applyAllEl.checked) {
+          applyRectToAllPages(rect, pageNumber);
+        }
+      }
+      state.previewRect = null;
+      drawOverlay(pageNumber);
+      updateClearButtonState();
+    };
+
+      overlay.addEventListener('mouseup', endDrawing);
+      overlay.addEventListener('mouseleave', endDrawing);
+
+      overlay.addEventListener('dblclick', () => {
+        const list = rectsByPage[pageNumber] || [];
+        list.pop();
+        rectsByPage[pageNumber] = list;
+        drawOverlay(pageNumber);
+        updateClearButtonState();
+      });
+    }
+
+    function getPageState(pageNumber) {
+      if (!pageStates.has(pageNumber)) {
+        pageStates.set(pageNumber, { drawing: false, startX: 0, startY: 0, previewRect: null });
+      }
+      return pageStates.get(pageNumber);
+    }
+
+    function drawOverlay(pageNumber) {
+      const view = pageViews.get(pageNumber);
+      if (!view) return;
+      const { overlay, octx } = view;
+      octx.clearRect(0, 0, overlay.width, overlay.height);
+      const mask = maskColorEl.value || '#000';
+      const alpha = Math.max(0.1, Math.min(1, Number(opacityEl.value) || 1));
+      const strokeW = Number(strokeWEl.value) || 2;
+      const rects = rectsByPage[pageNumber] || [];
+      const preview = pageStates.get(pageNumber)?.previewRect || null;
+
+      octx.save();
+      for (const rect of rects) paintRect(octx, rect, mask, alpha, strokeW);
+      if (preview) paintRect(octx, preview, mask, alpha, strokeW);
+      octx.restore();
+    }
+
+    function paintRect(ctx, rect, mask, alpha, strokeW) {
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = mask;
+      ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = strokeW;
+      ctx.strokeStyle = '#000';
+      ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+    }
+
+    function redrawAllOverlays() {
+      for (const pageNumber of pageViews.keys()) {
+        drawOverlay(pageNumber);
+      }
+    }
+
+    function updateZoomDisplay() {
+      if (zoomDisplay) {
+        zoomDisplay.textContent = `${Math.round(zoomFactor * 100)}%`;
+      }
+      const canZoom = !!pdfDoc;
+      zoomInBtn.disabled = !canZoom || zoomFactor >= (MAX_ZOOM - 0.01);
+      zoomOutBtn.disabled = !canZoom || zoomFactor <= (MIN_ZOOM + 0.01);
+      zoomFitBtn.disabled = !canZoom;
+    }
+
+    function setZoomControlsEnabled(enabled) {
+      if (!enabled) {
+        zoomInBtn.disabled = true;
+        zoomOutBtn.disabled = true;
+        zoomFitBtn.disabled = true;
+      } else {
+        updateZoomDisplay();
+      }
+    }
+
+    async function setZoomFactor(newFactor) {
+      const clamped = clamp(newFactor, MIN_ZOOM, MAX_ZOOM);
+      if (Math.abs(clamped - zoomFactor) < 0.001) {
+        updateZoomDisplay();
+        return;
+      }
+      zoomFactor = clamped;
+      localStorage.setItem(ZOOM_KEY, zoomFactor.toFixed(2));
+      updateZoomDisplay();
+      if (!pdfDoc) return;
+      await applyScale();
+    }
+
+    async function applyScale() {
+      const newScale = fitScale * zoomFactor;
+      const factor = newScale / scale;
+      scale = newScale;
+      if (Math.abs(factor - 1) > 0.001) {
+        rescaleRects(factor);
+      }
+      for (const state of pageStates.values()) {
+        state.drawing = false;
+        state.previewRect = null;
+      }
+      await rerenderAllPages();
+      redrawAllOverlays();
+    }
+
+    function rescaleRects(factor) {
+      for (const key of Object.keys(rectsByPage)) {
+        const arr = rectsByPage[key];
+        if (!Array.isArray(arr)) continue;
+        rectsByPage[key] = arr.map((rect) => ({
+          x: rect.x * factor,
+          y: rect.y * factor,
+          w: rect.w * factor,
+          h: rect.h * factor,
+        }));
+      }
+    }
+
+    function applyRectToAllPages(rect, sourcePage) {
+      if (!pdfDoc) return;
+      for (let p = 1; p <= pdfDoc.numPages; p++) {
+        if (p === sourcePage) continue;
+        if (!rectsByPage[p]) rectsByPage[p] = [];
+        rectsByPage[p].push({ ...rect });
+        if (pageViews.has(p)) {
+          drawOverlay(p);
+        }
+      }
+    }
+
+    async function rerenderAllPages() {
+      if (!pdfDoc) return;
+      for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+        await renderPage(pageNum);
+      }
+    }
+
+    function setActivePage(pageNumber) {
+      if (!pageViews.has(pageNumber)) return;
+      activePage = pageNumber;
+      pageNumEl.textContent = pageNumber;
+      for (const [num, view] of pageViews.entries()) {
+        view.wrapper.classList.toggle('active', num === pageNumber);
+      }
+      updateClearButtonState();
+    }
+
+    function updateClearButtonState() {
+      if (!pdfDoc) {
+        btnClearRects.disabled = true;
+        return;
+      }
+      const rects = rectsByPage[activePage] || [];
+      btnClearRects.disabled = rects.length === 0;
+    }
+
+    function computeScaleForWidth(pageWidth) {
+      const containerWidth = viewerContainer.clientWidth || viewerContainer.getBoundingClientRect().width;
+      if (!containerWidth) return 1;
+      const available = Math.max(containerWidth - 24, 200);
+      const fitScale = available / pageWidth;
+      if (!Number.isFinite(fitScale) || fitScale <= 0) return 1;
+      return Math.min(1.3, fitScale);
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    window.addEventListener('resize', () => {
+      if (!pdfDoc || !basePageWidth) return;
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(async () => {
+        const newFit = computeScaleForWidth(basePageWidth);
+        if (!Number.isFinite(newFit) || newFit <= 0) return;
+        const prevScale = scale;
+        fitScale = newFit;
+        const newScale = fitScale * zoomFactor;
+        const factor = newScale / prevScale;
+        scale = newScale;
+        if (Math.abs(factor - 1) > 0.001) {
+          rescaleRects(factor);
+        }
+        await rerenderAllPages();
+        redrawAllOverlays();
+        updateZoomDisplay();
+      }, 180);
+    });
+
+    function sanitizeFileName(name) {
+      if (!name || typeof name !== 'string') return 'documento.pdf';
+      const cleaned = name.replace(/[\\/]+/g, '_').trim() || 'documento.pdf';
+      if (cleaned.toLowerCase().endsWith('.pdf')) return cleaned;
+      return `${cleaned}.pdf`;
+    }
+
+    function buildAnonName(original) {
+      if (namingStrategy === 'fixed') return 'anonim.pdf';
+      const safeName = sanitizeFileName(original);
+      const dot = safeName.lastIndexOf('.');
+      const base = dot > 0 ? safeName.slice(0, dot) : safeName;
+      const ext = dot > 0 ? safeName.slice(dot) : '.pdf';
+      return `${base}_anonim${ext}`;
+    }
+
+    function getMousePos(e, el) {
+      const rect = el.getBoundingClientRect();
+      const x = (e.clientX - rect.left) * (el.width / rect.width);
+      const y = (e.clientY - rect.top) * (el.height / rect.height);
+      return { x, y };
+    }
+
+    function normalizeRect(x1, y1, x2, y2) {
+      const x = Math.min(x1, x2);
+      const y = Math.min(y1, y2);
+      const w = Math.abs(x2 - x1);
+      const h = Math.abs(y2 - y1);
+      return { x, y, w, h };
+    }
+
+  });
+</script>
+</body>
+</html>
