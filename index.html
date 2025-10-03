@@ -252,6 +252,8 @@
     const MIN_ZOOM = 0.6;
     const MAX_ZOOM = 3;
     const ZOOM_STEP = 0.2;
+    const EXPORT_RENDER_SCALE = 2;
+    const EXPORT_IMAGE_QUALITY = 0.92;
     const ZOOM_KEY = 'anonim-pdf-zoom';
     const CONTROLS_HIDDEN_KEY = 'anonim-pdf-controls-hidden';
     let activePage = 1;
@@ -408,34 +410,38 @@
 
       for (let p = 1; p <= pdfDoc.numPages; p++) {
         const page = await pdfDoc.getPage(p);
-        const viewport = page.getViewport({ scale });
+        const baseViewport = page.getViewport({ scale: 1 });
+        const exportViewport = page.getViewport({ scale: EXPORT_RENDER_SCALE });
 
-        pdfOut.addPage([viewport.width, viewport.height]);
+        pdfOut.addPage([baseViewport.width, baseViewport.height]);
         pdfOut.setPage(pdfOut.getNumberOfPages());
 
         const pageCanvas = document.createElement('canvas');
-        pageCanvas.width = viewport.width; pageCanvas.height = viewport.height;
+        pageCanvas.width = exportViewport.width;
+        pageCanvas.height = exportViewport.height;
         const pctx = pageCanvas.getContext('2d');
-        await page.render({ canvasContext: pctx, viewport }).promise;
+        await page.render({ canvasContext: pctx, viewport: exportViewport }).promise;
 
         const maskCanvas = document.createElement('canvas');
-        maskCanvas.width = viewport.width; maskCanvas.height = viewport.height;
+        maskCanvas.width = exportViewport.width;
+        maskCanvas.height = exportViewport.height;
         const mctx = maskCanvas.getContext('2d');
         const rects = rectsByPage[p] || [];
         const mask = maskColorEl.value || '#000';
         const alpha = Math.max(0.1, Math.min(1, Number(opacityEl.value) || 1));
+        const rectScale = scale > 0 ? EXPORT_RENDER_SCALE / scale : EXPORT_RENDER_SCALE;
         mctx.save();
         for (const r of rects) {
           mctx.globalAlpha = alpha;
           mctx.fillStyle = mask;
-          mctx.fillRect(r.x, r.y, r.w, r.h);
+          mctx.fillRect(r.x * rectScale, r.y * rectScale, r.w * rectScale, r.h * rectScale);
         }
         mctx.restore();
 
         pctx.drawImage(maskCanvas, 0, 0);
 
-        const img = pageCanvas.toDataURL('image/jpeg', 0.92);
-        pdfOut.addImage(img, 'JPEG', 0, 0, viewport.width, viewport.height, undefined, 'FAST');
+        const img = pageCanvas.toDataURL('image/jpeg', EXPORT_IMAGE_QUALITY);
+        pdfOut.addImage(img, 'JPEG', 0, 0, baseViewport.width, baseViewport.height, undefined, 'FAST');
       }
 
       const blob = pdfOut.output('blob');
