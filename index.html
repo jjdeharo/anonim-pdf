@@ -16,7 +16,7 @@
     button, input[type="number"], input[type="file"], select { padding: .5rem .6rem; border-radius: .5rem; border: 1px solid #8884; background: inherit; }
     button { cursor: pointer; }
     .panelToggle { width: 2.4rem; height: 2.4rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: 1px solid color-mix(in srgb, #3b82f6 35%, transparent 65%); background: color-mix(in srgb, canvas 93%, #3b82f6 7%); color: color-mix(in srgb, canvastext 88%, #0d1a2b 12%); box-shadow: 0 1px 4px #0002; transition: background .2s ease, color .2s ease, transform .2s ease; flex: 0 0 2.4rem; }
-    .panelToggle span { font-size: 1.2rem; line-height: 1; transition: transform .25s ease; }
+    .panelToggle svg { width: 1.35rem; height: 1.35rem; }
     .panelToggle:hover { background: color-mix(in srgb, canvas 88%, #3b82f6 12%); }
     .panelToggle:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
     #export,
@@ -79,7 +79,10 @@
     <section class="panel panelControls">
       <div class="row panelTopRow" style="margin-bottom:.5rem">
         <button id="toggleControls" class="panelToggle panelToggle-collapse" type="button" aria-pressed="false" title="Ocultar panel de controles">
-          <span aria-hidden="true">‹</span>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Ocultar menú">
+            <rect x="3" y="3" width="6" height="18" rx="2" />
+            <path d="M14 8l-4 4 4 4" />
+          </svg>
         </button>
         <div id="fileDrop" class="fileDrop">
           <input id="file" class="fileDropInput" type="file" accept="application/pdf" />
@@ -144,7 +147,10 @@
       </div>
       <div id="viewerContainer">
         <button id="showControls" class="panelToggle panelToggle-show" type="button" aria-pressed="true" title="Mostrar panel de controles">
-          <span aria-hidden="true">›</span>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Mostrar menú">
+            <rect x="3" y="3" width="2" height="18" rx="1" />
+            <path d="M10 8l4 4-4 4" />
+          </svg>
         </button>
         <div id="pagesContainer"></div>
       </div>
@@ -391,18 +397,18 @@
         toggleControlsBtn.setAttribute('aria-pressed', hidden ? 'true' : 'false');
         toggleControlsBtn.setAttribute('aria-label', hidden ? 'Mostrar panel de controles' : 'Ocultar panel de controles');
         toggleControlsBtn.setAttribute('title', hidden ? 'Mostrar panel de controles' : 'Ocultar panel de controles');
-        const icon = toggleControlsBtn.querySelector('span');
+        const icon = toggleControlsBtn.querySelector('svg');
         if (icon) {
-          icon.textContent = hidden ? '›' : '‹';
+          icon.setAttribute('aria-label', hidden ? 'Mostrar menú' : 'Ocultar menú');
         }
       }
       if (showControlsBtn) {
         showControlsBtn.setAttribute('aria-pressed', hidden ? 'true' : 'false');
         showControlsBtn.setAttribute('aria-label', 'Mostrar panel de controles');
         showControlsBtn.setAttribute('title', 'Mostrar panel de controles');
-        const icon = showControlsBtn.querySelector('span');
+        const icon = showControlsBtn.querySelector('svg');
         if (icon) {
-          icon.textContent = '›';
+          icon.setAttribute('aria-label', 'Mostrar menú');
         }
       }
     }
