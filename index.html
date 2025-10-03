@@ -71,6 +71,15 @@
     .pageView.active { outline: 2px solid #16a34a; outline-offset: 6px; }
     .badget { font-size: .85rem; opacity: .8; }
     footer { padding: .75rem 1rem; border-top: 1px solid #8883; }
+    #profModal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, #000 55%, transparent 45%); backdrop-filter: blur(4px); padding: 1.5rem; z-index: 999; opacity: 0; pointer-events: none; transition: opacity .25s ease; }
+    #profModal.active { opacity: 1; pointer-events: auto; }
+    #profModal .modalDialog { max-width: 640px; width: min(100%, 640px); background: color-mix(in srgb, canvas 92%, #16a34a 8%); color: inherit; border: 1px solid color-mix(in srgb, #16a34a 35%, transparent 65%); border-radius: .9rem; box-shadow: 0 14px 32px #0006; padding: 1.2rem 1.4rem 1.5rem; display: flex; flex-direction: column; gap: .85rem; position: relative; }
+    #profModal h2 { margin: 0; font-size: 1.2rem; }
+    #profModal p { margin: 0; line-height: 1.55; }
+    #profModal button.modalClose { align-self: flex-end; border: none; background: none; color: inherit; font-size: .95rem; cursor: pointer; padding: .35rem .6rem; border-radius: .5rem; transition: background .2s ease; }
+    #profModal button.modalClose:hover { background: color-mix(in srgb, canvas 85%, #16a34a 15%); }
+    .infoLink { color: inherit; text-decoration: underline; font-size: .9rem; cursor: pointer; border: none; background: none; padding: 0; }
+    .panelInfoLink { margin-left: .35rem; align-self: center; }
   </style>
   <!-- Bibliotecas locales para funcionar sin conexión -->
   <script src="./vendor/pdfjs/pdf.v216.min.js" defer></script>
@@ -95,6 +104,7 @@
             <path d="M10 8l4 4-4 4" />
           </svg>
         </button>
+        <button id="openProfModal" class="infoLink panelInfoLink" type="button">Aviso para el profesorado</button>
         <div id="fileDrop" class="fileDrop">
           <input id="file" class="fileDropInput" type="file" accept="application/pdf" />
           <span>Arrastra un PDF o haz clic para abrirlo</span>
@@ -134,7 +144,6 @@
       <p class="muted">
         Uso: arrastra con el ratón para definir rectángulos sobre el nombre. Doble clic borra el último rectángulo.
       </p>
-
       <details>
         <summary>Notas sobre seguridad del anonimizado</summary>
         <ul>
@@ -175,6 +184,18 @@
     </section>
   </main>
 
+  <div id="profModal" role="dialog" aria-modal="true" aria-labelledby="profModalTitle" aria-describedby="profModalBody">
+    <div class="modalDialog">
+      <button id="closeProfModal" class="modalClose" type="button">Cerrar aviso</button>
+      <h2 id="profModalTitle">Aviso para el profesorado</h2>
+      <div id="profModalBody" style="display:flex; flex-direction:column; gap:1rem;">
+        <p><strong>Esta aplicación únicamente genera un PDF anonimizado</strong>, ocultando los datos identificativos del alumnado para que los documentos puedan emplearse en herramientas de inteligencia artificial sin exponer información personal.</p>
+        <p>La inteligencia artificial puede servir de apoyo para obtener análisis parciales, detectar patrones o aportar nuevas perspectivas sobre los trabajos del alumnado. <strong>No debe confundirse su uso con la función docente</strong>: la IA no evalúa, no corrige y no puede asumir la responsabilidad educativa.</p>
+        <p><strong>La evaluación, el juicio pedagógico y la calificación del alumnado corresponden siempre al profesorado.</strong> La IA puede complementar la reflexión, pero nunca sustituir el criterio profesional ni la decisión final del docente.</p>
+      </div>
+    </div>
+  </div>
+
   <footer class="muted"></footer>
 
 <script>
@@ -213,6 +234,10 @@
     const zoomDisplay = document.getElementById('zoomDisplay');
     const toggleControlsBtn = document.getElementById('toggleControls');
     const showControlsBtn = document.getElementById('showControls');
+    const profModal = document.getElementById('profModal');
+    const closeProfModalBtn = document.getElementById('closeProfModal');
+    const openProfModalBtn = document.getElementById('openProfModal');
+    let lastFocusBeforeModal = null;
 
     let pdfDoc = null;
     let scale = 1;
@@ -268,6 +293,19 @@
       setControlsHidden(false);
       persistControlsHidden(false);
       toggleControlsBtn?.focus({ preventScroll: true });
+    });
+
+    openProfModalBtn?.addEventListener('click', () => openProfModal());
+    closeProfModalBtn?.addEventListener('click', () => closeProfModal());
+    profModal?.addEventListener('click', (event) => {
+      if (event.target === profModal) {
+        closeProfModal();
+      }
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && profModal?.classList.contains('active')) {
+        closeProfModal();
+      }
     });
 
     fileDrop.addEventListener('click', () => fileInput.click());
@@ -408,6 +446,21 @@
       a.style.display = 'none';
       setTimeout(() => URL.revokeObjectURL(url), 10_000);
     });
+
+    function openProfModal() {
+      if (!profModal) return;
+      lastFocusBeforeModal = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      profModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      closeProfModalBtn?.focus({ preventScroll: true });
+    }
+
+    function closeProfModal() {
+      if (!profModal) return;
+      profModal.classList.remove('active');
+      document.body.style.overflow = '';
+      lastFocusBeforeModal?.focus?.({ preventScroll: true });
+    }
 
     function setControlsHidden(hidden) {
       document.body.classList.toggle('controlsHidden', hidden);

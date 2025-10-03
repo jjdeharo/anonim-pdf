@@ -18,6 +18,8 @@ Aplicación web local para anonimizar documentos PDF dibujando rectángulos sobr
 4. Activa "Aplicar el rectángulo a todas las páginas" si necesitas repetir la misma cobertura.
 5. Pulsa **Exportar PDF anonimizado** para descargar el nuevo archivo.
 
+> ⚠️ **Aviso para el profesorado:** Esta aplicación solo anonimiza PDFs para proteger los datos del alumnado antes de emplearlos en herramientas de IA. La inteligencia artificial puede ayudar a obtener análisis parciales, detectar patrones o aportar nuevas perspectivas, pero **no sustituye la labor docente**: evaluar, juzgar pedagógicamente y calificar sigue siendo responsabilidad exclusiva del profesorado.
+
 ## Desarrollo
 
 ```bash
