@@ -9,12 +9,16 @@
     * { box-sizing: border-box; }
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji"; margin: 0; }
     header { position: sticky; top: 0; padding: .75rem 1rem; border-bottom: 1px solid #8883; backdrop-filter: blur(6px); }
-    main { display: grid; grid-template-columns: 360px 1fr; gap: 1rem; padding: 1rem; }
+    main { display: grid; grid-template-columns: 360px 1fr; gap: 1rem; padding: 1rem; transition: grid-template-columns .35s ease; }
     @media (max-width: 900px){ main { grid-template-columns: 1fr; } }
     .panel { border: 1px solid #8884; border-radius: .75rem; padding: .75rem; }
     .row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
     button, input[type="number"], input[type="file"], select { padding: .5rem .6rem; border-radius: .5rem; border: 1px solid #8884; background: inherit; }
     button { cursor: pointer; }
+    .panelToggle { width: 2.4rem; height: 2.4rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: 1px solid color-mix(in srgb, #3b82f6 35%, transparent 65%); background: color-mix(in srgb, canvas 93%, #3b82f6 7%); color: color-mix(in srgb, canvastext 88%, #0d1a2b 12%); box-shadow: 0 1px 4px #0002; transition: background .2s ease, color .2s ease, transform .2s ease; flex: 0 0 2.4rem; }
+    .panelToggle span { font-size: 1.2rem; line-height: 1; transition: transform .25s ease; }
+    .panelToggle:hover { background: color-mix(in srgb, canvas 88%, #3b82f6 12%); }
+    .panelToggle:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
     #export,
     #btnClearRects { background: color-mix(in srgb, canvas 85%, #3b82f6 15%); border-color: color-mix(in srgb, #3b82f6 35%, transparent 65%); color: color-mix(in srgb, canvastext 88%, #0d1a2b 12%); }
     #export:disabled,
@@ -33,9 +37,17 @@
     .rectSettings legend { font-size: .92rem; font-weight: 600; padding: 0 .35rem; }
     .rectSettings .rectControls { display: flex; gap: .75rem; flex-wrap: wrap; align-items: flex-start; }
     .rectSettings .rectStack { display: flex; flex-direction: column; gap: .4rem; min-width: 11rem; }
+    .panelControls { position: relative; transition: transform .35s ease, opacity .25s ease; }
+    .panelTopRow { align-items: stretch; }
+    .panelTopRow .fileDrop { flex: 1 1 auto; }
     .rectSettings .applyAll { display: flex; align-items: center; gap: .4rem; }
     #viewerContainer { position: relative; overflow-y: auto; max-height: 75vh; padding: .5rem; }
     #pagesContainer { display: flex; flex-direction: column; gap: 1.5rem; align-items: center; }
+    #showControls { position: absolute; top: .75rem; left: .75rem; z-index: 6; transform: translateX(-1rem); opacity: 0; pointer-events: none; }
+    #showControls span { transform: translateX(1px); }
+    body.controlsHidden main { grid-template-columns: 0px 1fr; }
+    body.controlsHidden .panelControls { transform: translateX(-2rem); opacity: 0; pointer-events: none; }
+    body.controlsHidden #showControls { transform: translateX(0); opacity: 1; pointer-events: auto; }
     #zoomOverlay { position: sticky; top: .75rem; right: .75rem; margin-left: auto; align-self: flex-end; z-index: 5; display: inline-flex; gap: .5rem; align-items: center; padding: .35rem .6rem; border-radius: .6rem; border: 1px solid #8886; box-shadow: 0 6px 16px #0005; background: color-mix(in srgb, canvas 65%, #222 35%); backdrop-filter: blur(6px); }
     #zoomOverlay button { background: color-mix(in srgb, canvas 55%, #000 45%); color: inherit; border-radius: .5rem; border: 1px solid #8886; min-width: 2.1rem; }
     @media (prefers-color-scheme: light) {
@@ -63,8 +75,11 @@
   </header>
 
   <main>
-    <section class="panel">
-      <div class="row" style="margin-bottom:.5rem">
+    <section class="panel panelControls">
+      <div class="row panelTopRow" style="margin-bottom:.5rem">
+        <button id="toggleControls" class="panelToggle panelToggle-collapse" type="button" aria-pressed="false" title="Ocultar panel de controles">
+          <span aria-hidden="true">‹</span>
+        </button>
         <div id="fileDrop" class="fileDrop">
           <input id="file" class="fileDropInput" type="file" accept="application/pdf" />
           <span>Arrastra un PDF o haz clic para abrirlo</span>
@@ -118,6 +133,9 @@
 
     <section class="panel">
       <div id="viewerContainer">
+        <button id="showControls" class="panelToggle panelToggle-show" type="button" aria-pressed="true" title="Mostrar panel de controles">
+          <span aria-hidden="true">›</span>
+        </button>
         <div id="zoomOverlay">
           <span>Zoom:</span>
           <button id="zoomOut" type="button" disabled>-</button>
@@ -166,6 +184,8 @@
     const zoomInBtn = document.getElementById('zoomIn');
     const zoomFitBtn = document.getElementById('zoomFit');
     const zoomDisplay = document.getElementById('zoomDisplay');
+    const toggleControlsBtn = document.getElementById('toggleControls');
+    const showControlsBtn = document.getElementById('showControls');
 
     let pdfDoc = null;
     let scale = 1;
@@ -180,6 +200,7 @@
     const MAX_ZOOM = 3;
     const ZOOM_STEP = 0.2;
     const ZOOM_KEY = 'anonim-pdf-zoom';
+    const CONTROLS_HIDDEN_KEY = 'anonim-pdf-controls-hidden';
     let activePage = 1;
     const pageViews = new Map();
     const pageStates = new Map();
@@ -202,6 +223,25 @@
 
     const DEFAULT_DROP_TEXT = 'Arrastra un PDF o haz clic para abrirlo';
     fileDropText.textContent = DEFAULT_DROP_TEXT;
+
+    const storedControlsHidden = localStorage.getItem(CONTROLS_HIDDEN_KEY) === 'true';
+    setControlsHidden(storedControlsHidden);
+
+    function persistControlsHidden(hidden) {
+      localStorage.setItem(CONTROLS_HIDDEN_KEY, hidden ? 'true' : 'false');
+    }
+
+    toggleControlsBtn?.addEventListener('click', () => {
+      const nextHidden = !document.body.classList.contains('controlsHidden');
+      setControlsHidden(nextHidden);
+      persistControlsHidden(nextHidden);
+    });
+
+    showControlsBtn?.addEventListener('click', () => {
+      setControlsHidden(false);
+      persistControlsHidden(false);
+      toggleControlsBtn?.focus({ preventScroll: true });
+    });
 
     fileDrop.addEventListener('click', () => fileInput.click());
     fileDrop.addEventListener('dragenter', (e) => {
@@ -341,6 +381,24 @@
       a.style.display = 'none';
       setTimeout(() => URL.revokeObjectURL(url), 10_000);
     });
+
+    function setControlsHidden(hidden) {
+      document.body.classList.toggle('controlsHidden', hidden);
+      if (toggleControlsBtn) {
+        toggleControlsBtn.setAttribute('aria-pressed', hidden ? 'true' : 'false');
+        toggleControlsBtn.setAttribute('aria-label', hidden ? 'Mostrar panel de controles' : 'Ocultar panel de controles');
+        toggleControlsBtn.setAttribute('title', hidden ? 'Mostrar panel de controles' : 'Ocultar panel de controles');
+        const icon = toggleControlsBtn.querySelector('span');
+        if (icon) {
+          icon.style.transform = hidden ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
+      }
+      if (showControlsBtn) {
+        showControlsBtn.setAttribute('aria-pressed', hidden ? 'true' : 'false');
+        showControlsBtn.setAttribute('aria-label', hidden ? 'Mostrar panel de controles' : 'Mostrar panel de controles');
+        showControlsBtn.setAttribute('title', hidden ? 'Mostrar panel de controles' : 'Mostrar panel de controles');
+      }
+    }
 
     async function openPdfFile(file) {
       if (!file) return false;
