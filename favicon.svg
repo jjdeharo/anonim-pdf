@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 64 64" role="img" aria-labelledby="t d">
+  <title id="t">Anonimizador de PDF</title>
+  <desc id="d">Página con esquina doblada y una franja de anonimizado sobre el contenido.</desc>
+
+  <!-- Fondo -->
+  <rect x="2" y="2" width="60" height="60" rx="12" fill="#16a34a"/>
+
+  <!-- Página -->
+  <rect x="14" y="10" width="36" height="44" rx="3.5" fill="#ffffff"/>
+  <!-- Esquina doblada -->
+  <path d="M42 10h8v8z" fill="#16a34a"/>
+
+  <!-- Líneas de texto (tenues) -->
+  <rect x="18" y="18" width="28" height="3" rx="1.5" fill="#7a9689"/>
+  <rect x="18" y="23" width="20" height="3" rx="1.5" fill="#677f73"/>
+  <rect x="18" y="41" width="24" height="3" rx="1.5" fill="#718b7f"/>
+
+  <!-- Rectángulo de anonimizado -->
+  <rect x="18" y="30.5" width="28" height="6" rx="2" fill="#0f2716" opacity="0.95"/>
+  <rect x="18" y="30.5" width="28" height="6" rx="2" fill="none" stroke="#0b1a0f" stroke-width="0.9"/>
+
+</svg>
