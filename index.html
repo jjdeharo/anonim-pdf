@@ -57,7 +57,8 @@
     .panelCollapsible summary::-webkit-details-marker { display: none; }
     .panelCollapsible summary::after { content: '\25BE'; font-size: .8rem; transition: transform .2s ease; }
     .panelCollapsible[open] summary::after { transform: rotate(-180deg); }
-    .panelCollapsible .collapsibleBody { padding: 0 .85rem .75rem; border-top: 1px solid color-mix(in srgb, canvastext 18%, transparent 82%); display: flex; flex-direction: column; gap: .6rem; }
+    .panelCollapsible .collapsibleBody { padding: 0 .85rem 0; border-top: 1px solid transparent; display: flex; flex-direction: column; gap: .6rem; max-height: 0; opacity: 0; overflow: hidden; transition: max-height .28s ease, opacity .24s ease, padding-top .24s ease, padding-bottom .24s ease, border-top-color .24s ease; }
+    .panelCollapsible[open] .collapsibleBody { padding: .6rem .85rem .75rem; max-height: 420px; opacity: 1; border-top-color: color-mix(in srgb, canvastext 18%, transparent 82%); }
     .panelCollapsible .rectControls { display: flex; gap: .75rem; flex-wrap: wrap; align-items: flex-start; }
     .panelCollapsible .rectStack { display: flex; flex-direction: column; gap: .4rem; min-width: 11rem; }
     .usageList { margin: 0; padding-left: 1.2rem; }
@@ -95,7 +96,7 @@
       .searchOverlay button { background: color-mix(in srgb, canvas 98%, #666 2%); border-color: color-mix(in srgb, #000 25%, transparent 75%); color: color-mix(in srgb, canvastext 92%, #000 8%); }
       .searchOverlay input { background: color-mix(in srgb, canvas 99%, #666 1%); border-color: color-mix(in srgb, #000 20%, transparent 80%); color: color-mix(in srgb, canvastext 92%, #000 8%); }
       .panelCollapsible { background: color-mix(in srgb, canvas 98%, #666 2%); border-color: color-mix(in srgb, #000 18%, transparent 82%); }
-      .panelCollapsible .collapsibleBody { border-top-color: color-mix(in srgb, #000 18%, transparent 82%); }
+      .panelCollapsible[open] .collapsibleBody { border-top-color: color-mix(in srgb, #000 18%, transparent 82%); }
       #zoomOverlay button:disabled { opacity: .55; }
     }
     #zoomOverlay button:disabled,
