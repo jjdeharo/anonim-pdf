@@ -1,33 +1,34 @@
 # Anonimizador de PDF
 
-Aplicación web local para anonimizar documentos PDF dibujando rectángulos sobre la vista previa. Todo el procesamiento ocurre en el navegador, sin subir archivos a servidores externos.
+Aplicación web local para anonimizar PDFs o imágenes dibujando rectángulos sobre la vista previa. Todo el procesamiento ocurre en el navegador, sin subir archivos a servidores externos.
 
 ## Características
 
-- Carga documentos mediante arrastre y suelta o clic.
-- Herramientas para colocar rectángulos opacos sobre las páginas.
-- Exportación a un PDF rasterizado con las áreas cubiertas.
-- Controles de zoom y máscara configurables.
-- Compatible con modos claro y oscuro.
+- Carga archivos mediante arrastre y suelta o clic (PDF, PNG, JPG, WEBP...).
+- Herramientas para situar rectángulos opacos y controlar tamaño, color y opacidad.
+- Exportación a PDF anonimizado, imagen PNG única o ZIP con un PNG por página.
+- Controles de zoom, máscara configurable y modo de vista claro/oscuro.
+- Funcionamiento 100 % local con pdf.js y jsPDF incluidos en `vendor/`.
 
 ## Uso
 
 1. Abre `index.html` en tu navegador de escritorio.
-2. Arrastra un archivo PDF a la zona de carga o haz clic para seleccionarlo.
-3. Dibuja los rectángulos sobre cada página. Puedes ajustar grosor, opacidad y color.
-4. Activa "Aplicar el rectángulo a todas las páginas" si necesitas repetir la misma cobertura.
-5. Pulsa **Exportar PDF anonimizado** para descargar el nuevo archivo.
+2. Arrastra un PDF o una imagen a la zona de carga, o haz clic para seleccionarlo.
+3. Dibuja los rectángulos sobre cada página. Ajusta grosor, opacidad y color según necesites.
+4. Usa "Aplicar el rectángulo a todas las páginas" para replicar una cobertura en todo el documento.
+5. Elige el formato de exportación (PDF anonimizado, PNG único o ZIP con PNG por página) y descarga el resultado.
 
-> ⚠️ **Aviso para el profesorado:** Esta aplicación solo anonimiza PDFs para proteger los datos del alumnado antes de emplearlos en herramientas de IA. La inteligencia artificial puede ayudar a obtener análisis parciales, detectar patrones o aportar nuevas perspectivas, pero **no sustituye la labor docente**: evaluar, juzgar pedagógicamente y calificar sigue siendo responsabilidad exclusiva del profesorado.
+> ⚠️ **Aviso para el profesorado:** Esta aplicación ofrece herramientas para anonimizar manualmente un PDF o una imagen, ocultando los datos identificativos del alumnado antes de generar un nuevo documento. La inteligencia artificial puede apoyar con análisis parciales o nuevas perspectivas, pero **no sustituye la labor docente**: evaluar, juzgar pedagógicamente y calificar sigue siendo responsabilidad exclusiva del profesorado.
 
 ## Desarrollo
 
 ```bash
 npm install
-npm test
+npx playwright install --with-deps # primera vez en un entorno nuevo
+npx playwright test
 ```
 
-La aplicación utiliza pdf.js y jsPDF desde la carpeta `vendor`, por lo que funciona sin conexión.
+Durante el desarrollo puedes servir el proyecto con `npx http-server .` o abrir `index.html` directamente en el navegador. La aplicación utiliza pdf.js y jsPDF desde la carpeta `vendor`, por lo que funciona sin conexión.
 
 ## Licencias
 
