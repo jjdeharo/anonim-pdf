@@ -51,6 +51,9 @@
     .rectSettings legend { font-size: .92rem; font-weight: 600; padding: 0 .35rem; }
     .rectSettings .rectControls { display: flex; gap: .75rem; flex-wrap: wrap; align-items: flex-start; }
     .rectSettings .rectStack { display: flex; flex-direction: column; gap: .4rem; min-width: 11rem; }
+    .usageList { margin: 0; padding-left: 1.2rem; }
+    .usageList li { margin-bottom: .35rem; }
+    .usageList li:last-child { margin-bottom: 0; }
     .panelControls { position: relative; transition: transform .35s ease, opacity .25s ease; background: color-mix(in srgb, canvas 92%, canvastext 8%); }
     .panelTopRow { align-items: stretch; }
     .panelTopRow .fileDrop { flex: 1 1 auto; }
@@ -133,7 +136,7 @@
       </div>
       <fieldset class="rectSettings" style="margin-bottom:.75rem">
         <legend data-i18n="controls.usage.title">Uso</legend>
-        <p class="muted" style="margin:0" data-i18n="controls.usage.help" data-i18n-type="html">Arrastra con el <strong>botón izquierdo</strong> del ratón para dibujar un rectángulo en la página actual.<br />Arrastra con el <strong>botón derecho</strong> para dibujar el mismo rectángulo en la <strong>misma posición en todas las páginas</strong> del PDF.<br />Haz <strong>doble clic</strong> sobre un rectángulo para borrarlo.</p>
+        <div class="muted" style="margin:0" data-i18n="controls.usage.help" data-i18n-type="html"></div>
       </fieldset>
       <fieldset class="rectSettings">
         <legend data-i18n="controls.rect.title">Dibujo del rectángulo</legend>
@@ -246,7 +249,7 @@
         'drop.default': `Arrastra un PDF o imagen o haz clic para abrirlo`,
         'status.page': `Página`,
         'controls.usage.title': `Uso`,
-        'controls.usage.help': `Arrastra con el <strong>botón izquierdo</strong> del ratón para dibujar un rectángulo en la página actual.<br />Arrastra con el <strong>botón derecho</strong> para dibujar el mismo rectángulo en la <strong>misma posición en todas las páginas</strong> del PDF.<br />Haz <strong>doble clic</strong> sobre un rectángulo para borrarlo.`,
+        'controls.usage.help': `<ol class="usageList"><li>Arrastra con el <strong>botón izquierdo</strong> para dibujar un rectángulo en la página actual.</li><li>Arrastra con el <strong>botón derecho</strong> para dibujar el mismo rectángulo en la <strong>misma posición en todas las páginas</strong> del PDF.</li><li>Haz <strong>doble clic</strong> sobre un rectángulo para borrarlo.</li><li>Pulsa el botón <strong>“Limpiar rectángulos de esta página”</strong> para borrar todos los rectángulos de la página actual.</li></ol>`,
         'controls.rect.title': `Dibujo del rectángulo`,
         'controls.rect.stroke': `Grosor del borde:`,
         'controls.rect.opacity': `Opacidad tapa:`,
@@ -314,7 +317,7 @@
         'drop.default': `Arrossega un PDF o una imatge o fes clic per obrir-la`,
         'status.page': `Pàgina`,
         'controls.usage.title': `Ús`,
-        'controls.usage.help': `Arrossega amb el <strong>botó esquerre</strong> del ratolí per dibuixar un rectangle a la pàgina actual.<br />Arrossega amb el <strong>botó dret</strong> per dibuixar el mateix rectangle a la <strong>mateixa posició a totes les pàgines</strong> del PDF.<br />Fes <strong>doble clic</strong> sobre un rectangle per esborrar-lo.`,
+        'controls.usage.help': `<ol class="usageList"><li>Arrossega amb el <strong>botó esquerre</strong> per dibuixar un rectangle a la pàgina actual.</li><li>Arrossega amb el <strong>botó dret</strong> per dibuixar el mateix rectangle a la <strong>mateixa posició a totes les pàgines</strong> del PDF.</li><li>Fes <strong>doble clic</strong> sobre un rectangle per esborrar-lo.</li><li>Prem el botó <strong>“Neteja els rectangles d'aquesta pàgina”</strong> per esborrar tots els rectangles de la pàgina actual.</li></ol>`,
         'controls.rect.title': `Dibuix del rectangle`,
         'controls.rect.stroke': `Gruix del contorn:`,
         'controls.rect.opacity': `Opacitat de la cobertura:`,
@@ -382,7 +385,7 @@
         'drop.default': `Arrastra un PDF ou unha imaxe ou fai clic para abrila`,
         'status.page': `Páxina`,
         'controls.usage.title': `Uso`,
-        'controls.usage.help': `Arrastra co <strong>botón esquerdo</strong> do rato para debuxar un rectángulo na páxina actual.<br />Arrastra co <strong>botón dereito</strong> para debuxar o mesmo rectángulo na <strong>mesma posición en todas as páxinas</strong> do PDF.<br />Fai <strong>dobre clic</strong> sobre un rectángulo para borralo.`,
+        'controls.usage.help': `<ol class="usageList"><li>Arrastra co <strong>botón esquerdo</strong> para debuxar un rectángulo na páxina actual.</li><li>Arrastra co <strong>botón dereito</strong> para debuxar o mesmo rectángulo na <strong>mesma posición en todas as páxinas</strong> do PDF.</li><li>Fai <strong>dobre clic</strong> sobre un rectángulo para borralo.</li><li>Preme o botón <strong>“Limpar os rectángulos desta páxina”</strong> para borrar todos os rectángulos da páxina actual.</li></ol>`,
         'controls.rect.title': `Debuxo do rectángulo`,
         'controls.rect.stroke': `Grosor do bordo:`,
         'controls.rect.opacity': `Opacidade da cuberta:`,
@@ -450,7 +453,7 @@
         'drop.default': `Arrastatu PDF bat edo irudi bat edo egin klik irekitzeko`,
         'status.page': `Orria`,
         'controls.usage.title': `Erabilera`,
-        'controls.usage.help': `Arratoia <strong>ezker botoiarekin</strong> arrastatu uneko orrian laukizuzen bat marrazteko.<br /><strong>Eskuineko botoiarekin</strong> arrastatuz, laukizuzen bera <strong>PDFko orri guztietan kokapen berean</strong> marraztuko duzu.<br />Egin <strong>klik bikoitza</strong> laukizuzen baten gainean hura ezabatzeko.`,
+        'controls.usage.help': `<ol class="usageList"><li>Arratoia <strong>ezker botoiarekin</strong> arrastatu uneko orrian laukizuzen bat marrazteko.</li><li><strong>Eskuineko botoiarekin</strong> arrastatuz, laukizuzen bera <strong>PDFko orri guztietan kokapen berean</strong> marraztuko duzu.</li><li>Egin <strong>klik bikoitza</strong> laukizuzen baten gainean hura ezabatzeko.</li><li>Sakatu <strong>“Garbitu orri honetako laukizuzenak”</strong> botoia uneko orriko laukizuzen guztiak kentzeko.</li></ol>`,
         'controls.rect.title': `Laukizuzenaren marrazketa`,
         'controls.rect.stroke': `Ertzaren lodiera:`,
         'controls.rect.opacity': `Estalduraren opakutasuna:`,
@@ -518,7 +521,7 @@
         'drop.default': `Drop a PDF or image or click to open`,
         'status.page': `Page`,
         'controls.usage.title': `Usage`,
-        'controls.usage.help': `Drag with the <strong>left mouse button</strong> to draw a rectangle on the current page.<br />Drag with the <strong>right button</strong> to draw the same rectangle in the <strong>same position on every page</strong> of the PDF.<br />Double-click a rectangle to delete it.`,
+        'controls.usage.help': `<ol class="usageList"><li>Drag with the <strong>left mouse button</strong> to draw a rectangle on the current page.</li><li>Drag with the <strong>right button</strong> to draw the same rectangle in the <strong>same position on every page</strong> of the PDF.</li><li>Double-click a rectangle to delete it.</li><li>Press the <strong>“Clear rectangles on this page”</strong> button to remove all rectangles from the current page.</li></ol>`,
         'controls.rect.title': `Rectangle drawing`,
         'controls.rect.stroke': `Border thickness:`,
         'controls.rect.opacity': `Mask opacity:`,

@@ -18,7 +18,8 @@ Aplicación web local para anonimizar PDFs o imágenes dibujando rectángulos so
 3. Arrastra con el botón izquierdo del ratón para dibujar rectángulos sobre cada página. Ajusta grosor, opacidad y color según necesites.
 4. Arrastra con el botón derecho para crear el mismo rectángulo en la misma posición de todas las páginas del PDF.
 5. Haz doble clic sobre un rectángulo para eliminarlo.
-6. Elige el formato de exportación (PDF anonimizado, PNG único o ZIP con PNG por página) y descarga el resultado.
+6. Pulsa el botón “Limpiar rectángulos de esta página” para borrar todos los rectángulos de la página actual.
+7. Elige el formato de exportación (PDF anonimizado, PNG único o ZIP con PNG por página) y descarga el resultado.
 
 > ⚠️ **Aviso para el profesorado:** Esta aplicación ofrece herramientas para anonimizar manualmente un PDF o una imagen, ocultando los datos identificativos del alumnado antes de generar un nuevo documento. La inteligencia artificial puede apoyar con análisis parciales o nuevas perspectivas, pero **no sustituye la labor docente**: evaluar, juzgar pedagógicamente y calificar sigue siendo responsabilidad exclusiva del profesorado.
 
