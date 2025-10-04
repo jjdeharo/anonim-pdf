@@ -133,7 +133,7 @@
       </div>
       <fieldset class="rectSettings" style="margin-bottom:.75rem">
         <legend data-i18n="controls.usage.title">Uso</legend>
-        <p class="muted" style="margin:0" data-i18n="controls.usage.help">Arrastra con el ratón para definir rectángulos sobre el nombre. Selecciona con el botón derecho para aplicar el mismo rectángulo a todas las páginas del PDF. Doble clic borra el último rectángulo.</p>
+        <p class="muted" style="margin:0" data-i18n="controls.usage.help" data-i18n-type="html">Arrastra con el <strong>botón izquierdo</strong> del ratón para dibujar un rectángulo en la página actual.<br />Arrastra con el <strong>botón derecho</strong> para dibujar el mismo rectángulo en la <strong>misma posición en todas las páginas</strong> del PDF.<br />Haz <strong>doble clic</strong> sobre un rectángulo para borrarlo.</p>
       </fieldset>
       <fieldset class="rectSettings">
         <legend data-i18n="controls.rect.title">Dibujo del rectángulo</legend>
@@ -246,7 +246,7 @@
         'drop.default': `Arrastra un PDF o imagen o haz clic para abrirlo`,
         'status.page': `Página`,
         'controls.usage.title': `Uso`,
-        'controls.usage.help': `Arrastra con el ratón para definir rectángulos sobre el nombre. Selecciona con el botón derecho para aplicar el mismo rectángulo a todas las páginas del PDF. Doble clic borra el último rectángulo.`,
+        'controls.usage.help': `Arrastra con el <strong>botón izquierdo</strong> del ratón para dibujar un rectángulo en la página actual.<br />Arrastra con el <strong>botón derecho</strong> para dibujar el mismo rectángulo en la <strong>misma posición en todas las páginas</strong> del PDF.<br />Haz <strong>doble clic</strong> sobre un rectángulo para borrarlo.`,
         'controls.rect.title': `Dibujo del rectángulo`,
         'controls.rect.stroke': `Grosor del borde:`,
         'controls.rect.opacity': `Opacidad tapa:`,
@@ -314,7 +314,7 @@
         'drop.default': `Arrossega un PDF o una imatge o fes clic per obrir-la`,
         'status.page': `Pàgina`,
         'controls.usage.title': `Ús`,
-        'controls.usage.help': `Arrossega amb el ratolí per definir rectangles sobre el nom. Selecciona amb el botó dret per aplicar el mateix rectangle a totes les pàgines del PDF. El doble clic esborra l'últim rectangle.`,
+        'controls.usage.help': `Arrossega amb el <strong>botó esquerre</strong> del ratolí per dibuixar un rectangle a la pàgina actual.<br />Arrossega amb el <strong>botó dret</strong> per dibuixar el mateix rectangle a la <strong>mateixa posició a totes les pàgines</strong> del PDF.<br />Fes <strong>doble clic</strong> sobre un rectangle per esborrar-lo.`,
         'controls.rect.title': `Dibuix del rectangle`,
         'controls.rect.stroke': `Gruix del contorn:`,
         'controls.rect.opacity': `Opacitat de la cobertura:`,
@@ -382,7 +382,7 @@
         'drop.default': `Arrastra un PDF ou unha imaxe ou fai clic para abrila`,
         'status.page': `Páxina`,
         'controls.usage.title': `Uso`,
-        'controls.usage.help': `Arrastra co rato para definir rectángulos sobre o nome. Selecciona co botón dereito para aplicar o mesmo rectángulo a todas as páxinas do PDF. O dobre clic borra o último rectángulo.`,
+        'controls.usage.help': `Arrastra co <strong>botón esquerdo</strong> do rato para debuxar un rectángulo na páxina actual.<br />Arrastra co <strong>botón dereito</strong> para debuxar o mesmo rectángulo na <strong>mesma posición en todas as páxinas</strong> do PDF.<br />Fai <strong>dobre clic</strong> sobre un rectángulo para borralo.`,
         'controls.rect.title': `Debuxo do rectángulo`,
         'controls.rect.stroke': `Grosor do bordo:`,
         'controls.rect.opacity': `Opacidade da cuberta:`,
@@ -450,7 +450,7 @@
         'drop.default': `Arrastatu PDF bat edo irudi bat edo egin klik irekitzeko`,
         'status.page': `Orria`,
         'controls.usage.title': `Erabilera`,
-        'controls.usage.help': `Arratoia arrastatuz marraztu laukizuzenak izenaren gainean. Egin eskuineko klik laukizuzen bera PDFko orri guztietan aplikatzeko. Klik bikoitzak azken laukizuzena ezabatzen du.`,
+        'controls.usage.help': `Arratoia <strong>ezker botoiarekin</strong> arrastatu uneko orrian laukizuzen bat marrazteko.<br /><strong>Eskuineko botoiarekin</strong> arrastatuz, laukizuzen bera <strong>PDFko orri guztietan kokapen berean</strong> marraztuko duzu.<br />Egin <strong>klik bikoitza</strong> laukizuzen baten gainean hura ezabatzeko.`,
         'controls.rect.title': `Laukizuzenaren marrazketa`,
         'controls.rect.stroke': `Ertzaren lodiera:`,
         'controls.rect.opacity': `Estalduraren opakutasuna:`,
@@ -518,7 +518,7 @@
         'drop.default': `Drop a PDF or image or click to open`,
         'status.page': `Page`,
         'controls.usage.title': `Usage`,
-        'controls.usage.help': `Drag with the mouse to draw rectangles over the name. Right-click to reuse the same rectangle on every PDF page. Double-click removes the last rectangle.`,
+        'controls.usage.help': `Drag with the <strong>left mouse button</strong> to draw a rectangle on the current page.<br />Drag with the <strong>right button</strong> to draw the same rectangle in the <strong>same position on every page</strong> of the PDF.<br />Double-click a rectangle to delete it.`,
         'controls.rect.title': `Rectangle drawing`,
         'controls.rect.stroke': `Border thickness:`,
         'controls.rect.opacity': `Mask opacity:`,
@@ -1450,10 +1450,21 @@
         e.preventDefault();
       });
 
-      overlay.addEventListener('dblclick', () => {
-        const list = rectsByPage[pageNumber] || [];
-        list.pop();
-        rectsByPage[pageNumber] = list;
+      overlay.addEventListener('dblclick', (e) => {
+        e.preventDefault();
+        const rects = rectsByPage[pageNumber];
+        if (!rects || rects.length === 0) return;
+        const { x, y } = getMousePos(e, overlay);
+        let removed = false;
+        for (let i = rects.length - 1; i >= 0; i--) {
+          const rect = rects[i];
+          if (isPointInsideRect(x, y, rect)) {
+            rects.splice(i, 1);
+            removed = true;
+            break;
+          }
+        }
+        if (!removed) return;
         drawOverlay(pageNumber);
         updateClearButtonState();
       });
@@ -1836,6 +1847,10 @@
       const x = (e.clientX - rect.left) * (el.width / rect.width);
       const y = (e.clientY - rect.top) * (el.height / rect.height);
       return { x, y };
+    }
+
+    function isPointInsideRect(px, py, rect) {
+      return px >= rect.x && px <= rect.x + rect.w && py >= rect.y && py <= rect.y + rect.h;
     }
 
     function normalizeRect(x1, y1, x2, y2) {
