@@ -13,10 +13,14 @@
     :root { color-scheme: light dark; }
     * { box-sizing: border-box; }
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji"; margin: 0; }
-    header { position: sticky; top: 0; padding: .75rem 1rem; border-bottom: 1px solid #8883; backdrop-filter: blur(6px); }
-    main { display: grid; grid-template-columns: 360px 1fr; gap: 1rem; padding: 1rem; transition: grid-template-columns .35s ease; }
+    header { position: sticky; top: 0; padding: .75rem 1rem; border-bottom: 1px solid #8883; backdrop-filter: blur(6px); background: color-mix(in srgb, canvas 92%, canvastext 8%); z-index: 30; }
+    .headerBar { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; }
+    .headerBrand { display: flex; align-items: center; gap: .6rem; min-width: 200px; }
+    .headerToolbar { flex: 1 1 320px; display: flex; align-items: center; justify-content: center; gap: .75rem; flex-wrap: wrap; }
+    main { display: grid; grid-template-columns: 360px 1fr; gap: 1rem; padding: 1rem; transition: grid-template-columns .35s ease; align-items: flex-start; }
     @media (max-width: 900px){ main { grid-template-columns: 1fr; } }
     .panel { border: 1px solid #8884; border-radius: .75rem; padding: .75rem; background: color-mix(in srgb, canvas 96%, canvastext 4%); }
+    main > .panel { min-height: 0; }
     .langSelector { margin-left: auto; display: flex; align-items: center; gap: .4rem; font-size: .9rem; }
     .langSelector span { font-weight: 600; }
     .langSelector select { padding: .4rem .6rem; border-radius: .5rem; min-width: 7rem; }
@@ -57,23 +61,38 @@
     .panelControls { position: relative; transition: transform .35s ease, opacity .25s ease; background: color-mix(in srgb, canvas 92%, canvastext 8%); }
     .panelTopRow { align-items: stretch; }
     .panelTopRow .fileDrop { flex: 1 1 auto; }
-    #viewerContainer { position: relative; overflow-y: auto; max-height: 75vh; padding: 1rem .5rem .5rem; }
+    .panelViewer { position: relative; display: flex; flex-direction: column; }
+    #viewerContainer { position: relative; overflow-y: auto; padding: 1rem .5rem 1.5rem; min-height: 420px; flex: 1 1 auto; }
     #pagesContainer { display: flex; flex-direction: column; gap: 1.5rem; align-items: center; }
-    .viewerToolbar { position: sticky; top: .75rem; z-index: 6; display: flex; align-items: center; justify-content: center; gap: .75rem; padding: 0 1.5rem; margin-bottom: .25rem; }
-    #showControls { position: absolute; left: 1.25rem; top: 50%; transform: translate(-50%, -50%); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .2s ease; }
-    #zoomOverlay { display: inline-flex; align-items: center; gap: .5rem; padding: .35rem .6rem; border-radius: .6rem; border: 1px solid #8886; box-shadow: 0 6px 16px #0005; background: color-mix(in srgb, canvas 65%, #222 35%); backdrop-filter: blur(6px); }
-    #zoomOverlay button { background: color-mix(in srgb, canvas 55%, #000 45%); color: inherit; border-radius: .5rem; border: 1px solid #8886; min-width: 2.1rem; }
+    #showControls { margin-left: .5rem; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .2s ease; display: none; }
+    #zoomOverlay,
+    .searchOverlay { display: inline-flex; align-items: center; gap: .35rem; padding: .35rem .6rem; border-radius: .6rem; border: 1px solid #8886; box-shadow: 0 6px 16px #0005; background: color-mix(in srgb, canvas 65%, #222 35%); backdrop-filter: blur(6px); min-height: 2.5rem; }
+    #zoomOverlay button,
+    .searchOverlay button { background: color-mix(in srgb, canvas 55%, #000 45%); color: inherit; border-radius: .5rem; border: 1px solid #8886; min-width: 2.1rem; }
+    .searchOverlay input { border-radius: .5rem; border: 1px solid color-mix(in srgb, #fff 25%, transparent 75%); background: color-mix(in srgb, canvas 55%, #111 45%); color: inherit; padding: .4rem .55rem; min-width: 11rem; }
+    .searchOverlay input:disabled { opacity: .55; cursor: not-allowed; }
+    .searchOverlay button { padding: .35rem .55rem; font-size: 1rem; line-height: 1; min-width: 2rem; cursor: pointer; }
+    .searchOverlay .searchNav { min-width: 2rem; padding: .35rem .45rem; }
+    .searchOverlay button:disabled { opacity: .45; cursor: not-allowed; }
+    .viewerSearchGroup { display: inline-flex; flex-direction: column; gap: .25rem; align-items: center; }
+    .viewerSearchGroup .searchOverlay { align-self: stretch; }
+    .searchStatus { font-size: .85rem; opacity: .8; text-align: center; min-width: 7rem; display: block; line-height: 1.1; }
+    .srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
     body.controlsHidden main { grid-template-columns: 0px 1fr; }
     body.controlsHidden .panelControls { transform: translateX(-2rem); opacity: 0; pointer-events: none; }
-    body.controlsHidden #showControls { opacity: 1; visibility: visible; pointer-events: auto; }
+    body.controlsHidden #showControls { display: inline-flex; opacity: 1; visibility: visible; pointer-events: auto; }
     @media (prefers-color-scheme: light) {
       .panelControls { background: #f2f3f5; }
       .panel { background: #f9fafb; }
-      #zoomOverlay { background: color-mix(in srgb, canvas 95%, #666 5%); border-color: color-mix(in srgb, #000 18%, transparent 82%); box-shadow: 0 6px 18px #0002; }
-      #zoomOverlay button { background: color-mix(in srgb, canvas 98%, #666 2%); border-color: color-mix(in srgb, #000 25%, transparent 75%); color: color-mix(in srgb, canvastext 92%, #000 8%); }
+      #zoomOverlay,
+      .searchOverlay { background: color-mix(in srgb, canvas 95%, #666 5%); border-color: color-mix(in srgb, #000 18%, transparent 82%); box-shadow: 0 6px 18px #0002; }
+      #zoomOverlay button,
+      .searchOverlay button { background: color-mix(in srgb, canvas 98%, #666 2%); border-color: color-mix(in srgb, #000 25%, transparent 75%); color: color-mix(in srgb, canvastext 92%, #000 8%); }
+      .searchOverlay input { background: color-mix(in srgb, canvas 99%, #666 1%); border-color: color-mix(in srgb, #000 20%, transparent 80%); color: color-mix(in srgb, canvastext 92%, #000 8%); }
       #zoomOverlay button:disabled { opacity: .55; }
     }
-    #zoomOverlay button:disabled { opacity: .45; }
+    #zoomOverlay button:disabled,
+    .searchOverlay button:disabled { opacity: .45; }
     .pageView { position: relative; }
     .pageView img { display: block; border: 1px solid #8884; border-radius: .5rem; background: #fff; user-select: none; }
     .pageView .pdfPageCanvas { display: none; }
@@ -97,9 +116,36 @@
   <script src="./vendor/jszip/jszip.min.js" defer></script>
 </head>
 <body>
-  <header class="row">
-    <img src="./favicon.svg" alt="" width="32" height="32" aria-hidden="true" />
-    <strong data-i18n="app.headerTitle">Anonimizador de PDF e imágenes</strong>
+  <header class="headerBar">
+    <div class="headerBrand">
+      <img src="./favicon.svg" alt="" width="32" height="32" aria-hidden="true" />
+      <strong data-i18n="app.headerTitle">Anonimizador de PDF e imágenes</strong>
+      <button id="showControls" class="panelToggle panelToggle-show" type="button" aria-pressed="false" title="Mostrar panel de controles">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="3" width="2" height="18" rx="1" />
+          <path d="M10 8l4 4-4 4" />
+        </svg>
+      </button>
+    </div>
+    <div class="headerToolbar">
+      <div id="zoomOverlay">
+        <span data-i18n="viewer.zoom.label">Zoom:</span>
+        <button id="zoomOut" type="button" disabled>-</button>
+        <span id="zoomDisplay">100%</span>
+        <button id="zoomIn" type="button" disabled>+</button>
+        <button id="zoomFit" type="button" disabled data-i18n="viewer.zoom.fit">Ajustar ancho</button>
+      </div>
+      <div class="viewerSearchGroup">
+        <form id="searchForm" class="searchOverlay" role="search">
+          <label for="searchInput" class="srOnly" data-i18n="viewer.search.label">Buscar en el documento</label>
+          <input id="searchInput" type="search" autocomplete="off" placeholder="Buscar texto" data-i18n-attr-placeholder="viewer.search.placeholder" />
+          <button id="searchPrev" class="searchNav" type="button" aria-label="Coincidencia anterior" title="Coincidencia anterior" data-i18n-attr-aria-label="viewer.search.prevLabel" data-i18n-attr-title="viewer.search.prevLabel" disabled>&lsaquo;</button>
+          <button id="searchNext" class="searchNav" type="button" aria-label="Coincidencia siguiente" title="Coincidencia siguiente" data-i18n-attr-title="viewer.search.nextLabel" data-i18n-attr-aria-label="viewer.search.nextLabel" disabled>&rsaquo;</button>
+          <button id="searchClear" type="button" aria-label="Limpiar búsqueda" data-i18n-attr-aria-label="viewer.search.clearLabel" disabled>×</button>
+        </form>
+        <span id="searchStatus" class="searchStatus" aria-live="polite"></span>
+      </div>
+    </div>
     <label for="languageSelect" class="langSelector">
       <span data-i18n="lang.label">Idioma</span>
       <select id="languageSelect">
@@ -199,21 +245,6 @@
     </section>
 
     <section class="panel panelViewer">
-      <div class="viewerToolbar">
-        <button id="showControls" class="panelToggle panelToggle-show" type="button" aria-pressed="false" title="Mostrar panel de controles">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="3" y="3" width="2" height="18" rx="1" />
-            <path d="M10 8l4 4-4 4" />
-          </svg>
-        </button>
-        <div id="zoomOverlay">
-          <span data-i18n="viewer.zoom.label">Zoom:</span>
-          <button id="zoomOut" type="button" disabled>-</button>
-          <span id="zoomDisplay">100%</span>
-          <button id="zoomIn" type="button" disabled>+</button>
-          <button id="zoomFit" type="button" disabled data-i18n="viewer.zoom.fit">Ajustar ancho</button>
-        </div>
-      </div>
       <div id="viewerContainer">
         <div id="pagesContainer"></div>
       </div>
@@ -278,6 +309,17 @@
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Licencia del código: AGPL v3</a>`,
         'viewer.zoom.label': `Zoom:`,
         'viewer.zoom.fit': `Ajustar ancho`,
+        'viewer.search.label': `Buscar en el documento`,
+        'viewer.search.placeholder': `Buscar texto…`,
+        'viewer.search.clearLabel': `Limpiar búsqueda`,
+        'viewer.search.matchOne': `1 coincidencia`,
+        'viewer.search.matches': `{matches} coincidencias`,
+        'viewer.search.noResults': `Sin coincidencias`,
+        'viewer.search.searching': `Buscando…`,
+        'viewer.search.disabled': `Disponible solo para documentos PDF`,
+        'viewer.search.prevLabel': `Coincidencia anterior`,
+        'viewer.search.nextLabel': `Coincidencia siguiente`,
+        'viewer.search.indexed': `{current}/{total} coincidencias`,
         'modal.close': `Cerrar aviso`,
         'modal.title': `Aviso importante`,
         'modal.body1': `Esta aplicación ofrece herramientas para que el usuario pueda anonimizar un PDF o una imagen, permitiéndole ocultar manualmente los datos identificativos del alumnado antes de generar un nuevo documento. De esta forma, los archivos pueden emplearse en herramientas de inteligencia artificial sin exponer información personal.`,
@@ -346,6 +388,17 @@
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Llicència del codi: AGPL v3</a>`,
         'viewer.zoom.label': `Zoom:`,
         'viewer.zoom.fit': `Ajusta l'amplada`,
+        'viewer.search.label': `Cercar al document`,
+        'viewer.search.placeholder': `Cerca de text…`,
+        'viewer.search.clearLabel': `Neteja la cerca`,
+        'viewer.search.matchOne': `1 coincidència`,
+        'viewer.search.matches': `{matches} coincidències`,
+        'viewer.search.noResults': `Sense coincidències`,
+        'viewer.search.searching': `Cercant…`,
+        'viewer.search.disabled': `Disponible només per a documents PDF`,
+        'viewer.search.prevLabel': `Coincidència anterior`,
+        'viewer.search.nextLabel': `Coincidència següent`,
+        'viewer.search.indexed': `{current}/{total} coincidències`,
         'modal.close': `Tanca l'avís`,
         'modal.title': `Avís important`,
         'modal.body1': `Aquesta aplicació ofereix eines perquè l'usuari pugui anonimitzar un PDF o una imatge, permetent-li ocultar manualment les dades identificatives de l'alumnat abans de generar un document nou. D'aquesta manera, els fitxers es poden emprar en eines d'intel·ligència artificial sense exposar informació personal.`,
@@ -414,6 +467,17 @@
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Licenza do código: AGPL v3</a>`,
         'viewer.zoom.label': `Zoom:`,
         'viewer.zoom.fit': `Axustar ancho`,
+        'viewer.search.label': `Buscar no documento`,
+        'viewer.search.placeholder': `Buscar texto…`,
+        'viewer.search.clearLabel': `Limpar a busca`,
+        'viewer.search.matchOne': `1 coincidencia`,
+        'viewer.search.matches': `{matches} coincidencias`,
+        'viewer.search.noResults': `Sen coincidencias`,
+        'viewer.search.searching': `Buscando…`,
+        'viewer.search.disabled': `Dispoñible só para documentos PDF`,
+        'viewer.search.prevLabel': `Coincidencia anterior`,
+        'viewer.search.nextLabel': `Coincidencia seguinte`,
+        'viewer.search.indexed': `{current}/{total} coincidencias`,
         'modal.close': `Pechar aviso`,
         'modal.title': `Aviso importante`,
         'modal.body1': `Esta aplicación ofrece ferramentas para que a persoa usuaria poida anonimizar un PDF ou unha imaxe, permitíndolle ocultar manualmente os datos identificativos do alumnado antes de xerar un novo documento. Deste xeito, os arquivos poden empregarse en ferramentas de intelixencia artificial sen expor información persoal.`,
@@ -482,6 +546,17 @@
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Kodearen lizentzia: AGPL v3</a>`,
         'viewer.zoom.label': `Zooma:`,
         'viewer.zoom.fit': `Doitu zabalera`,
+        'viewer.search.label': `Bilatu dokumentuan`,
+        'viewer.search.placeholder': `Testua bilatu…`,
+        'viewer.search.clearLabel': `Garbitu bilaketa`,
+        'viewer.search.matchOne': `1 bat-etortze`,
+        'viewer.search.matches': `{matches} bat-etortze`,
+        'viewer.search.noResults': `Ez da bat datorrenik aurkitu`,
+        'viewer.search.searching': `Bilatzen…`,
+        'viewer.search.disabled': `PDF dokumentuentzat soilik erabilgarri`,
+        'viewer.search.prevLabel': `Aurreko bat-etortzea`,
+        'viewer.search.nextLabel': `Hurrengo bat-etortzea`,
+        'viewer.search.indexed': `{current}/{total} bat-etortze`,
         'modal.close': `Itxi oharra`,
         'modal.title': `Ohar garrantzitsua`,
         'modal.body1': `Aplikazio honek tresnak eskaintzen ditu erabiltzaileak PDF edo irudi bat anonimizatu ahal izateko, ikasleen identifikazio datuak eskuz ezkutatzeko aukera emanez dokumentu berri bat sortu aurretik. Horrela, fitxategiak adimen artifizialeko tresnetan erabil daitezke informazio pertsonala agerian utzi gabe.`,
@@ -550,6 +625,17 @@
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Code license: AGPL v3</a>`,
         'viewer.zoom.label': `Zoom:`,
         'viewer.zoom.fit': `Fit width`,
+        'viewer.search.label': `Search the document`,
+        'viewer.search.placeholder': `Search text…`,
+        'viewer.search.clearLabel': `Clear search`,
+        'viewer.search.matchOne': `1 match`,
+        'viewer.search.matches': `{matches} matches`,
+        'viewer.search.noResults': `No matches`,
+        'viewer.search.searching': `Searching…`,
+        'viewer.search.disabled': `Available for PDF documents only`,
+        'viewer.search.prevLabel': `Previous match`,
+        'viewer.search.nextLabel': `Next match`,
+        'viewer.search.indexed': `{current} of {total} matches`,
         'modal.close': `Close notice`,
         'modal.title': `Important notice`,
         'modal.body1': `This application provides tools so the user can anonymize a PDF or an image, allowing them to manually hide students' identifying data before generating a new document. This way, the files can be used with artificial intelligence tools without exposing personal information.`,
@@ -604,6 +690,10 @@
     const fileDrop = document.getElementById('fileDrop');
     const fileDropText = fileDrop.querySelector('span');
     const fileInput = document.getElementById('file');
+    const main = document.querySelector('main');
+    const controlsPanel = document.querySelector('.panelControls');
+    const viewerPanel = document.querySelector('.panelViewer');
+    const headerEl = document.querySelector('header');
     const pageNumEl = document.getElementById('pageNum');
     const pageCountEl = document.getElementById('pageCount');
     const btnExport = document.getElementById('export');
@@ -625,6 +715,12 @@
     const closeProfModalBtn = document.getElementById('closeProfModal');
     const openProfModalBtn = document.getElementById('openProfModal');
     const languageSelect = document.getElementById('languageSelect');
+    const searchForm = document.getElementById('searchForm');
+    const searchInput = document.getElementById('searchInput');
+    const searchPrevBtn = document.getElementById('searchPrev');
+    const searchNextBtn = document.getElementById('searchNext');
+    const searchClearBtn = document.getElementById('searchClear');
+    const searchStatusEl = document.getElementById('searchStatus');
     let lastFocusBeforeModal = null;
 
     let pdfDoc = null;
@@ -654,10 +750,21 @@
     const SINGLE_IMAGE_PAGE_GAP = 24;
     const SINGLE_IMAGE_CANVAS_LIMIT = 32760;
     const SINGLE_IMAGE_BACKGROUND = '#ffffff';
+    const SEARCH_DEBOUNCE_MS = 220;
+    const SEARCH_MIN_CHARS = 2;
+    const SEARCH_HIGHLIGHT_FILL = 'rgba(253, 230, 138, 0.45)';
+    const SEARCH_ACTIVE_STROKE = 'rgba(234, 179, 8, 0.9)';
+    const SEARCH_DIACRITIC_REGEX = /[\u0300-\u036f]/g;
     let activePage = 1;
     let pageCount = 0;
     const pageViews = new Map();
     const pageStates = new Map();
+    let searchTerm = '';
+    let searchMatchesByPage = new Map();
+    let searchMatchesOrdered = [];
+    let activeMatchIndex = -1;
+    let searchDebounceId = null;
+    let searchRequestId = 0;
 
     const observer = 'IntersectionObserver' in window
       ? new IntersectionObserver((entries) => {
@@ -681,6 +788,7 @@
 
     const storedControlsHidden = localStorage.getItem(CONTROLS_HIDDEN_KEY) === 'true';
     setControlsHidden(storedControlsHidden);
+    syncViewerHeight();
 
     function persistControlsHidden(hidden) {
       localStorage.setItem(CONTROLS_HIDDEN_KEY, hidden ? 'true' : 'false');
@@ -789,12 +897,51 @@
       applyLocale(nextLocale);
     });
 
+    searchForm?.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (docType !== 'pdf') return;
+      triggerSearchNow();
+    });
+
+    searchInput?.addEventListener('input', () => {
+      const value = searchInput.value || '';
+      scheduleSearch(value);
+      updateSearchClearButton();
+    });
+
+    searchInput?.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && searchInput.value) {
+        searchInput.value = '';
+        scheduleSearch('');
+        updateSearchClearButton();
+        event.stopPropagation();
+      }
+    });
+
+    searchClearBtn?.addEventListener('click', () => {
+      if (!searchInput) return;
+      searchInput.value = '';
+      scheduleSearch('');
+      searchInput.focus({ preventScroll: true });
+      updateSearchClearButton();
+    });
+
+    searchPrevBtn?.addEventListener('click', () => {
+      goToRelativeMatch(-1);
+    });
+
+    searchNextBtn?.addEventListener('click', () => {
+      goToRelativeMatch(1);
+    });
+
     const storedZoom = parseFloat(localStorage.getItem(ZOOM_KEY) || '');
     if (!Number.isNaN(storedZoom)) {
       zoomFactor = clamp(storedZoom, MIN_ZOOM, MAX_ZOOM);
     }
     setZoomControlsEnabled(false);
     updateZoomDisplay();
+    setSearchControlsEnabled(false);
+    updateSearchStatus();
 
     zoomInBtn.addEventListener('click', () => {
       setZoomFactor(zoomFactor + ZOOM_STEP).catch((err) => console.error(err));
@@ -826,6 +973,347 @@
         alert(t('alerts.exportError'));
       }
     });
+
+    function setSearchControlsEnabled(enabled) {
+      if (searchInput) {
+        searchInput.disabled = !enabled;
+      }
+      if (searchPrevBtn) {
+        searchPrevBtn.disabled = true;
+      }
+      if (searchNextBtn) {
+        searchNextBtn.disabled = true;
+      }
+      updateSearchClearButton();
+      if (enabled) {
+        updateSearchNavButtons();
+      }
+    }
+
+    function updateSearchClearButton() {
+      if (!searchClearBtn) return;
+      if (!searchInput || searchInput.disabled) {
+        searchClearBtn.disabled = true;
+        return;
+      }
+      searchClearBtn.disabled = searchInput.value.trim().length === 0;
+    }
+
+    function updateSearchNavButtons() {
+      const hasMatches = docType === 'pdf' && searchTerm.length >= SEARCH_MIN_CHARS && searchMatchesOrdered.length > 0;
+      if (searchPrevBtn) {
+        searchPrevBtn.disabled = !hasMatches;
+      }
+      if (searchNextBtn) {
+        searchNextBtn.disabled = !hasMatches;
+      }
+    }
+
+    function goToRelativeMatch(step) {
+      if (!Number.isInteger(step) || searchMatchesOrdered.length === 0) return;
+      const total = searchMatchesOrdered.length;
+      if (activeMatchIndex < 0) {
+        focusMatch(step > 0 ? 0 : total - 1);
+        return;
+      }
+      const nextIndex = ((activeMatchIndex + step) % total + total) % total;
+      focusMatch(nextIndex);
+    }
+
+    function focusMatch(index, { behavior = 'smooth' } = {}) {
+      if (searchMatchesOrdered.length === 0) return;
+      const total = searchMatchesOrdered.length;
+      const normalized = ((index % total) + total) % total;
+      activeMatchIndex = normalized;
+      const match = searchMatchesOrdered[normalized];
+      if (!match) return;
+      setActivePage(match.pageNumber);
+      scrollToMatch(match, behavior);
+      redrawAllOverlays();
+      updateSearchStatus();
+      updateSearchNavButtons();
+    }
+
+    function scrollToMatch(match, behavior = 'smooth') {
+      if (!viewerContainer) return;
+      const view = pageViews.get(match.pageNumber);
+      if (!view) return;
+      const { wrapper } = view;
+      const scaledY = match.rect.y * scale;
+      const scaledH = match.rect.h * scale;
+      const target = wrapper.offsetTop + scaledY - (viewerContainer.clientHeight / 2) + (scaledH / 2);
+      const top = Math.max(target, 0);
+      const scrollBehavior = behavior === 'instant' ? 'auto' : behavior;
+      const canScrollViewer = (viewerContainer.scrollHeight - viewerContainer.clientHeight) > 2;
+
+      if (canScrollViewer) {
+        if (typeof viewerContainer.scrollTo === 'function') {
+          viewerContainer.scrollTo({ top, behavior: scrollBehavior });
+        } else {
+          viewerContainer.scrollTop = top;
+        }
+        return;
+      }
+
+      // Fallback for layouts where the body handles scrolling instead of the viewer container.
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight || viewerContainer.clientHeight || 0;
+      const headerHeight = headerEl?.getBoundingClientRect().height || 0;
+      const effectiveViewport = Math.max(viewportHeight - headerHeight, 120);
+      const wrapperRect = wrapper.getBoundingClientRect();
+      const pageScrollY = window.scrollY ?? window.pageYOffset ?? document.documentElement.scrollTop ?? 0;
+      const absoluteTop = pageScrollY + wrapperRect.top + scaledY;
+      const desiredTop = Math.max(absoluteTop - (effectiveViewport / 2) + (scaledH / 2) - headerHeight, 0);
+      if (typeof window.scrollTo === 'function') {
+        window.scrollTo({ top: desiredTop, behavior: scrollBehavior });
+      } else {
+        document.documentElement.scrollTop = desiredTop;
+        document.body.scrollTop = desiredTop;
+      }
+    }
+
+    function scheduleSearch(rawValue) {
+      const value = (rawValue || '').trim();
+      searchTerm = value;
+      if (searchDebounceId) {
+        clearTimeout(searchDebounceId);
+        searchDebounceId = null;
+      }
+      if (!value) {
+        clearSearchHighlights({ keepTerm: true });
+        updateSearchStatus();
+        updateSearchNavButtons();
+        updateSearchClearButton();
+        return;
+      }
+      if (docType !== 'pdf') {
+        clearSearchHighlights({ keepTerm: true });
+        updateSearchStatus();
+        updateSearchNavButtons();
+        updateSearchClearButton();
+        return;
+      }
+      if (value.length < SEARCH_MIN_CHARS) {
+        clearSearchHighlights({ keepTerm: true });
+        updateSearchStatus();
+        updateSearchNavButtons();
+        updateSearchClearButton();
+        return;
+      }
+      searchMatchesByPage = new Map();
+      searchMatchesOrdered = [];
+      activeMatchIndex = -1;
+      redrawAllOverlays();
+      setSearchStatusSearching();
+      updateSearchNavButtons();
+      const requestId = ++searchRequestId;
+      searchDebounceId = setTimeout(() => {
+        searchDebounceId = null;
+        performSearch(value, requestId).catch((err) => console.error(err));
+      }, SEARCH_DEBOUNCE_MS);
+    }
+
+    function triggerSearchNow() {
+      if (!searchInput) return;
+      const value = (searchInput.value || '').trim();
+      searchTerm = value;
+      if (!value) {
+        scheduleSearch('');
+        return;
+      }
+      if (docType !== 'pdf' || value.length < SEARCH_MIN_CHARS) {
+        scheduleSearch(value);
+        return;
+      }
+      if (searchDebounceId) {
+        clearTimeout(searchDebounceId);
+        searchDebounceId = null;
+      }
+      searchMatchesByPage = new Map();
+      searchMatchesOrdered = [];
+      activeMatchIndex = -1;
+      redrawAllOverlays();
+      setSearchStatusSearching();
+      updateSearchNavButtons();
+      const requestId = ++searchRequestId;
+      performSearch(value, requestId).catch((err) => console.error(err));
+    }
+
+    function setSearchStatusSearching() {
+      if (!searchStatusEl) return;
+      if (!searchTerm || docType !== 'pdf' || searchTerm.length < SEARCH_MIN_CHARS) {
+        return;
+      }
+      searchStatusEl.style.visibility = 'visible';
+      searchStatusEl.textContent = t('viewer.search.searching');
+      updateSearchNavButtons();
+    }
+
+    async function performSearch(term, requestId) {
+      if (!pdfDoc || docType !== 'pdf') {
+        return;
+      }
+      const normalizedTerm = normalizeSearchText(term);
+      if (!normalizedTerm) {
+        clearSearchHighlights({ keepTerm: true });
+        updateSearchStatus();
+        return;
+      }
+      const matchesMap = new Map();
+      const ordered = [];
+      for (let pageNumber = 1; pageNumber <= pageCount; pageNumber++) {
+        const pageMatches = await findMatchesInPage(pageNumber, normalizedTerm);
+        if (requestId !== searchRequestId) {
+          return;
+        }
+        if (pageMatches.length) {
+          matchesMap.set(pageNumber, pageMatches);
+          for (const match of pageMatches) {
+            match.index = ordered.length;
+            ordered.push(match);
+          }
+        }
+      }
+      if (requestId !== searchRequestId) {
+        return;
+      }
+      searchMatchesByPage = matchesMap;
+      searchMatchesOrdered = ordered;
+      if (!ordered.length) {
+        activeMatchIndex = -1;
+        updateSearchStatus(0);
+        updateSearchNavButtons();
+        redrawAllOverlays();
+        return;
+      }
+      focusMatch(Math.min(activeMatchIndex >= 0 ? activeMatchIndex : 0, ordered.length - 1), { behavior: 'instant' });
+    }
+
+    async function findMatchesInPage(pageNumber, normalizedTerm) {
+      if (!pdfDoc) return [];
+      const page = await pdfDoc.getPage(pageNumber);
+      const viewport = page.getViewport({ scale: 1 });
+      const textContent = await page.getTextContent({ normalizeWhitespace: true });
+      const items = textContent.items || [];
+      const matches = [];
+      for (const item of items) {
+        const raw = item?.str;
+        if (!raw) continue;
+        const normalized = normalizeSearchText(raw);
+        let index = normalized.indexOf(normalizedTerm);
+        while (index !== -1) {
+          const rect = buildHighlightRect(item, viewport, index, normalizedTerm.length);
+          if (rect) {
+            matches.push({ pageNumber, rect });
+          }
+          index = normalized.indexOf(normalizedTerm, index + normalizedTerm.length);
+        }
+      }
+      if (typeof page.cleanup === 'function') {
+        page.cleanup();
+      }
+      return matches;
+    }
+
+    function normalizeSearchText(text) {
+      if (typeof text !== 'string') return '';
+      return text.normalize('NFD').replace(SEARCH_DIACRITIC_REGEX, '').toLowerCase();
+    }
+
+    function clearSearchHighlights({ keepTerm = false, skipRedraw = false } = {}) {
+      searchMatchesByPage = new Map();
+      searchMatchesOrdered = [];
+      activeMatchIndex = -1;
+      if (!keepTerm) {
+        searchTerm = '';
+        if (searchInput) {
+          searchInput.value = '';
+        }
+        if (searchClearBtn) {
+          searchClearBtn.disabled = true;
+        }
+      }
+      if (!skipRedraw) {
+        redrawAllOverlays();
+      }
+      updateSearchNavButtons();
+      updateSearchClearButton();
+    }
+
+    function countSearchMatches() {
+      return searchMatchesOrdered.length;
+    }
+
+    function updateSearchStatus(totalMatchesOverride) {
+      if (!searchStatusEl) return;
+      updateSearchNavButtons();
+      if (!searchTerm) {
+        searchStatusEl.textContent = '';
+        searchStatusEl.style.visibility = 'hidden';
+        return;
+      }
+      if (docType !== 'pdf') {
+        searchStatusEl.textContent = t('viewer.search.disabled');
+        searchStatusEl.style.visibility = 'visible';
+        return;
+      }
+      if (searchTerm.length < SEARCH_MIN_CHARS) {
+        searchStatusEl.textContent = '';
+        searchStatusEl.style.visibility = 'hidden';
+        return;
+      }
+      const total = typeof totalMatchesOverride === 'number' ? totalMatchesOverride : countSearchMatches();
+      searchStatusEl.style.visibility = 'visible';
+      if (total === 0) {
+        searchStatusEl.textContent = t('viewer.search.noResults');
+      } else if (total === 1) {
+        searchStatusEl.textContent = t('viewer.search.matchOne');
+      } else {
+        const current = activeMatchIndex >= 0 && activeMatchIndex < total
+          ? formatNumber(activeMatchIndex + 1)
+          : '';
+        if (current) {
+          searchStatusEl.textContent = t('viewer.search.indexed', { current, total: formatNumber(total) });
+        } else {
+          searchStatusEl.textContent = t('viewer.search.matches', { matches: formatNumber(total) });
+        }
+      }
+    }
+
+    function buildHighlightRect(item, viewport, startIndex, matchLength) {
+      const str = item?.str || '';
+      const totalChars = str.length || 1;
+      const transform = pdfjsLib?.Util?.transform(viewport.transform, item.transform);
+      if (!transform) return null;
+      const e = transform[4];
+      const f = transform[5];
+      const d = transform[3];
+      const baseHeight = Math.abs(d) || Math.abs(item.height) || 8;
+      let totalWidth = Number.isFinite(item.width) ? item.width : 0;
+      if (!totalWidth || totalWidth <= 0) {
+        const scaleX = Math.hypot(transform[0], transform[1]);
+        totalWidth = scaleX * totalChars;
+      }
+      let charWidth = totalWidth / Math.max(1, totalChars);
+      if (!Number.isFinite(charWidth) || charWidth <= 0) {
+        charWidth = Math.max(Math.abs(transform[0]), 1);
+      }
+      const startOffset = charWidth * Math.max(0, Math.min(startIndex, totalChars));
+      const spanWidth = Math.max(charWidth * matchLength, charWidth * 0.6, 2);
+      const x = e + startOffset;
+      const top = d < 0 ? f + d : f;
+      const maxWidth = viewport.width;
+      const maxHeight = viewport.height;
+      const clampedX = Math.min(Math.max(x, 0), maxWidth);
+      const clampedY = Math.min(Math.max(top, 0), maxHeight);
+      const clampedWidth = Math.min(Math.max(spanWidth, 2), maxWidth - clampedX);
+      const clampedHeight = Math.min(Math.max(baseHeight, 6), maxHeight - clampedY);
+      return {
+        x: clampedX,
+        y: clampedY,
+        w: Math.max(clampedWidth, 0),
+        h: Math.max(clampedHeight, 0),
+      };
+    }
 
     function getMaskSettings() {
       const mask = maskColorEl.value || '#000';
@@ -1079,6 +1567,7 @@
         showControlsBtn.setAttribute('aria-label', showButtonLabel);
         showControlsBtn.setAttribute('title', showButtonLabel);
       }
+      syncViewerHeight();
     }
 
     function resetExportControls() {
@@ -1179,6 +1668,52 @@
       exportNoticeEl.style.display = 'none';
     }
 
+    function syncViewerHeight() {
+      if (!viewerContainer || !main) return;
+      const isSingleColumn = typeof window.matchMedia === 'function'
+        ? window.matchMedia('(max-width: 900px)').matches
+        : (window.innerWidth || 0) <= 900;
+      if (isSingleColumn) {
+        viewerContainer.style.maxHeight = '';
+        if (viewerPanel) {
+          viewerPanel.style.maxHeight = '';
+        }
+        if (controlsPanel) {
+          controlsPanel.style.maxHeight = '';
+          controlsPanel.style.overflowY = '';
+          controlsPanel.style.position = '';
+          controlsPanel.style.top = '';
+        }
+        return;
+      }
+
+      const mainStyles = getComputedStyle(main);
+      const verticalGap = parseFloat(mainStyles.rowGap || mainStyles.gap || '0') || 0;
+      const paddingTop = parseFloat(mainStyles.paddingTop || '0') || 0;
+      const paddingBottom = parseFloat(mainStyles.paddingBottom || '0') || 0;
+      const headerHeight = headerEl?.getBoundingClientRect().height || 0;
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+      const available = viewportHeight - headerHeight - paddingTop - paddingBottom - verticalGap - 16;
+      let target = Number.isFinite(available) && available > 0 ? Math.floor(available) : 420;
+      if (!Number.isFinite(target) || target <= 0) {
+        target = 420;
+      } else if (target > 2000) {
+        target = 2000;
+      }
+
+      viewerContainer.style.maxHeight = `${target}px`;
+      if (viewerPanel) {
+        viewerPanel.style.maxHeight = `${target}px`;
+      }
+      if (controlsPanel) {
+        controlsPanel.style.maxHeight = `${target}px`;
+        controlsPanel.style.overflowY = 'auto';
+        const stickyOffset = headerHeight + paddingTop;
+        controlsPanel.style.position = 'sticky';
+        controlsPanel.style.top = `${Math.max(stickyOffset, paddingTop)}px`;
+      }
+    }
+
     function resetViewerState() {
       rectsByPage = {};
       pageViews.clear();
@@ -1194,6 +1729,10 @@
       resetExportControls();
       setZoomControlsEnabled(false);
       setFileDropStatus(getDefaultDropText(), false);
+      clearSearchHighlights({ keepTerm: true, skipRedraw: true });
+      setSearchControlsEnabled(false);
+      updateSearchStatus();
+      syncViewerHeight();
     }
 
     async function openDocument(file) {
@@ -1272,6 +1811,18 @@
       configureExportForDoc('pdf');
       setZoomControlsEnabled(true);
       updateZoomDisplay();
+      setSearchControlsEnabled(true);
+      if (searchInput) {
+        if (searchInput.value.trim()) {
+          scheduleSearch(searchInput.value);
+        } else {
+          updateSearchStatus();
+        }
+        updateSearchClearButton();
+      } else {
+        updateSearchStatus();
+      }
+      syncViewerHeight();
       return true;
     }
 
@@ -1321,6 +1872,10 @@
       configureExportForDoc('image');
       setZoomControlsEnabled(true);
       updateZoomDisplay();
+      clearSearchHighlights({ keepTerm: true });
+      setSearchControlsEnabled(false);
+      updateSearchStatus();
+      syncViewerHeight();
       return true;
     }
 
@@ -1492,6 +2047,28 @@
       if (!view) return;
       const { overlay, octx } = view;
       octx.clearRect(0, 0, overlay.width, overlay.height);
+      if (docType === 'pdf') {
+        const highlights = searchMatchesByPage.get(pageNumber) || [];
+        const activeMatch = activeMatchIndex >= 0 ? searchMatchesOrdered[activeMatchIndex] : null;
+        if (highlights.length) {
+          octx.save();
+          octx.fillStyle = SEARCH_HIGHLIGHT_FILL;
+          for (const match of highlights) {
+            const rect = match.rect;
+            const scaledX = rect.x * scale;
+            const scaledY = rect.y * scale;
+            const scaledW = rect.w * scale;
+            const scaledH = rect.h * scale;
+            octx.fillRect(scaledX, scaledY, scaledW, scaledH);
+            if (activeMatch === match) {
+              octx.lineWidth = 2;
+              octx.strokeStyle = SEARCH_ACTIVE_STROKE;
+              octx.strokeRect(scaledX - 1, scaledY - 1, scaledW + 2, scaledH + 2);
+            }
+          }
+          octx.restore();
+        }
+      }
       const mask = maskColorEl.value || '#000';
       const alpha = Math.max(0.1, Math.min(1, Number(opacityEl.value) || 1));
       const strokeW = Number(strokeWEl.value) || 2;
@@ -1565,7 +2142,12 @@
         state.previewRect = null;
       }
       await rerenderAllPages();
-      redrawAllOverlays();
+      if (activeMatchIndex >= 0) {
+        focusMatch(activeMatchIndex, { behavior: 'instant' });
+      } else {
+        redrawAllOverlays();
+      }
+      syncViewerHeight();
     }
 
     function rescaleRects(factor) {
@@ -1633,6 +2215,7 @@
     }
 
     window.addEventListener('resize', () => {
+      syncViewerHeight();
       if (!docType || !basePageWidth) return;
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(async () => {
@@ -1649,6 +2232,7 @@
         await rerenderAllPages();
         redrawAllOverlays();
         updateZoomDisplay();
+        syncViewerHeight();
       }, 180);
     });
 
@@ -1805,6 +2389,7 @@
       if (!docType && !fileDrop.classList.contains('hasFile')) {
         setFileDropStatus(getDefaultDropText(), false);
       }
+      updateSearchStatus();
     }
 
     function getDefaultDropText() {
