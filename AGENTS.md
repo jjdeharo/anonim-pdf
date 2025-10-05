@@ -1,5 +1,8 @@
 # Repository Guidelines
 
+## Reglas Operativas
+- No hagas push sin el permiso explícito de Juanjo.
+
 ## Project Structure & Module Organization
 El núcleo de la aplicación vive en `index.html`, que combina marcado, estilos y lógica JavaScript para el visor y editor de rectángulos. Los recursos estáticos de terceros (pdf.js y jsPDF) residen en `vendor/`; mantenlos versionados junto al código porque la app debe poder funcionar sin conexión. Las pruebas end-to-end se agrupan en `tests/`, usando Playwright; añade nuevos escenarios creando archivos `*.spec.ts` en esa carpeta. La carpeta `node_modules/` es generada y no debe editarse manualmente.
 
