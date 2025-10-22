@@ -26,6 +26,8 @@
     .langSelector select { padding: .4rem .6rem; border-radius: .5rem; min-width: 7rem; }
     .row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
     button, input[type="number"], input[type="file"], select { padding: .5rem .6rem; border-radius: .5rem; border: 1px solid #8884; background: inherit; }
+    select { background: color-mix(in srgb, canvas 97%, canvastext 3%); }
+    select:disabled { background: color-mix(in srgb, canvas 94%, canvastext 6%); }
     #zoomDisplay { padding: .5rem .6rem; padding-right: 1.8rem; border-radius: .5rem; border: 1px solid #8884; background: inherit; color: inherit; text-align: right; width: 5rem; }
     #zoomDisplay:focus-visible { outline: 2px solid #16a34a; outline-offset: 2px; }
     #zoomDisplay:disabled { opacity: .55; cursor: not-allowed; }
