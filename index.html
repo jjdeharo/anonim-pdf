@@ -2156,8 +2156,13 @@
       }
     }
 
-    function formatZoomPercent(factor) {
-      return (factor * 100).toFixed(2).replace(/\.?0+$/, '');
+    function getEffectiveScale() {
+      const base = Number.isFinite(fitScale) && fitScale > 0 ? fitScale : 1;
+      return base * zoomFactor;
+    }
+
+    function formatZoomPercent(scaleFactor) {
+      return (scaleFactor * 100).toFixed(2).replace(/\.?0+$/, '');
     }
 
     function parseZoomPercent(rawValue) {
@@ -2170,17 +2175,19 @@
     }
 
     function applyZoomFromInput(rawValue) {
-      const parsedFactor = parseZoomPercent(rawValue);
-      if (parsedFactor == null) {
+      const desiredScale = parseZoomPercent(rawValue);
+      if (desiredScale == null) {
         updateZoomDisplay();
         return;
       }
-      setZoomFactor(parsedFactor).catch((err) => console.error(err));
+      const base = Number.isFinite(fitScale) && fitScale > 0 ? fitScale : 1;
+      const nextFactor = desiredScale / base;
+      setZoomFactor(nextFactor).catch((err) => console.error(err));
     }
 
     function updateZoomDisplay() {
       if (zoomDisplay) {
-        zoomDisplay.value = formatZoomPercent(zoomFactor);
+        zoomDisplay.value = formatZoomPercent(getEffectiveScale());
       }
       const canZoom = !!docType;
       zoomInBtn.disabled = !canZoom || zoomFactor >= (MAX_ZOOM - 0.01);
