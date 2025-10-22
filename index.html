@@ -1377,11 +1377,10 @@
         return;
       }
       const { jsPDF } = jspdfNs;
-      const pdfOut = new jsPDF({ unit: 'pt', compress: true });
-      pdfOut.deletePage(1);
-
       const { mask, alpha } = getMaskSettings();
       const totalPages = pdfDoc.numPages;
+      let pdfOut = null;
+
       for (let p = 1; p <= totalPages; p++) {
         const page = await pdfDoc.getPage(p);
         const baseViewport = page.getViewport({ scale: 1 });
@@ -1397,13 +1396,27 @@
         const rectScale = getRectScaleForExport(EXPORT_RENDER_SCALE);
         paintMaskRects(pctx, rects, mask, alpha, rectScale);
 
-        pdfOut.addPage([baseViewport.width, baseViewport.height]);
-        pdfOut.setPage(pdfOut.getNumberOfPages());
+        const pageWidth = baseViewport.width;
+        const pageHeight = baseViewport.height;
+        const orientation = pageWidth >= pageHeight ? 'landscape' : 'portrait';
+
+        if (!pdfOut) {
+          pdfOut = new jsPDF({
+            orientation,
+            unit: 'pt',
+            format: [pageWidth, pageHeight],
+            compress: true,
+          });
+        } else {
+          pdfOut.addPage([pageWidth, pageHeight], orientation);
+          pdfOut.setPage(pdfOut.getNumberOfPages());
+        }
 
         const img = pageCanvas.toDataURL('image/jpeg', EXPORT_IMAGE_QUALITY);
-        pdfOut.addImage(img, 'JPEG', 0, 0, baseViewport.width, baseViewport.height, undefined, 'FAST');
+        pdfOut.addImage(img, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
       }
 
+      if (!pdfOut) return;
       const blob = pdfOut.output('blob');
       triggerDownload(blob, buildAnonName(currentFileName, '.pdf'));
     }
