@@ -115,7 +115,6 @@
     .pageView.active { outline: 2px solid #16a34a; outline-offset: 6px; }
     .badget { font-size: .85rem; opacity: .8; }
     footer { padding: .75rem 1rem; border-top: 1px solid #8883; }
-    .appFooter { display: flex; flex-wrap: wrap; gap: .5rem .8rem; align-items: center; }
     .footerLinkButton {
       appearance: none;
       border: 0;
@@ -131,7 +130,33 @@
     }
     .footerLinkButton:hover,
     .footerLinkButton:focus-visible { opacity: 1; }
-    .footerChunk[hidden] { display: none; }
+    .privacyPopoverWrap { position: relative; display: inline-flex; align-items: center; }
+    .privacyPopover {
+      position: absolute;
+      left: 0;
+      bottom: calc(100% + .45rem);
+      width: min(26rem, calc(100vw - 4rem));
+      padding: .7rem .85rem;
+      border: 1px solid color-mix(in srgb, canvastext 18%, transparent 82%);
+      border-radius: .75rem;
+      background: color-mix(in srgb, canvas 97%, canvastext 3%);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, .12);
+      line-height: 1.45;
+      z-index: 20;
+    }
+    .privacyPopover[hidden] { display: none; }
+    .privacyPopover::after {
+      content: '';
+      position: absolute;
+      left: 1rem;
+      top: 100%;
+      width: .7rem;
+      height: .7rem;
+      background: inherit;
+      border-right: 1px solid color-mix(in srgb, canvastext 18%, transparent 82%);
+      border-bottom: 1px solid color-mix(in srgb, canvastext 18%, transparent 82%);
+      transform: rotate(45deg);
+    }
     #profModal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, #000 55%, transparent 45%); backdrop-filter: blur(4px); padding: 1.5rem; z-index: 999; opacity: 0; pointer-events: none; transition: opacity .25s ease; }
     #profModal.active { opacity: 1; pointer-events: auto; }
     #profModal .modalDialog { max-width: 640px; width: min(100%, 640px); background: color-mix(in srgb, canvas 92%, #16a34a 8%); color: inherit; border: 1px solid color-mix(in srgb, #16a34a 35%, transparent 65%); border-radius: .9rem; box-shadow: 0 14px 32px #0006; padding: 1.2rem 1.4rem 1.5rem; display: flex; flex-direction: column; gap: .85rem; position: relative; }
@@ -277,6 +302,12 @@
       <details>
         <summary data-i18n="details.credits.title">Créditos y soporte</summary>
         <p class="muted" data-i18n="details.credits.contact" data-i18n-type="html">¿Dudas o sugerencias? Pulsa el botón verde <a href="https://github.com/jjdeharo/anonim-pdf/issues" style="color:inherit; text-decoration:underline;">New issue</a> en GitHub.</p>
+        <p class="muted">
+          <span class="privacyPopoverWrap">
+            <button id="privacyToggle" type="button" class="footerLinkButton" data-i18n="footer.privacyLabel" aria-expanded="false">Privacidad</button>
+            <span id="privacyMessage" class="privacyPopover" hidden data-i18n="footer.privacyMessage">Los archivos se procesan localmente en este navegador. Solo se recogen estadísticas de uso agregadas propias y no se envían archivos ni datos a terceros.</span>
+          </span>
+        </p>
         <p class="muted" data-i18n="details.credits.owner" data-i18n-type="html">Anonimizador de PDF · © 2025 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Recurso: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a></p>
         <p class="muted" data-i18n="details.credits.license" data-i18n-type="html"><a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Licencia del código: AGPL v3</a></p>
       </details>
@@ -302,11 +333,7 @@
     </div>
   </div>
 
-  <footer class="muted appFooter">
-    <span id="analyticsSummary" class="footerChunk" hidden></span>
-    <button id="privacyToggle" type="button" class="footerLinkButton footerChunk" data-i18n="footer.privacyLabel">Privacidad</button>
-    <span id="privacyMessage" class="footerChunk" hidden data-i18n="footer.privacyMessage">Los archivos se procesan localmente en este navegador. Solo se recogen estadísticas de uso agregadas propias y no se envían archivos ni datos a terceros.</span>
-  </footer>
+  <footer class="muted"></footer>
 
 <script>
   window.addEventListener('DOMContentLoaded', () => {
@@ -356,7 +383,6 @@
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Licencia del código: AGPL v3</a>`,
         'footer.privacyLabel': `Privacidad`,
         'footer.privacyMessage': `Los archivos se procesan localmente en este navegador. Solo se recogen estadísticas de uso agregadas propias y no se envían archivos ni datos a terceros.`,
-        'footer.analyticsSummary': `Visitas {total} · Hoy {today}`,
         'viewer.zoom.label': `Zoom:`,
         'viewer.zoom.inputLabel': `Porcentaje de zoom`,
         'viewer.zoom.fit': `Ajustar ancho`,
@@ -439,7 +465,6 @@
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Llicència del codi: AGPL v3</a>`,
         'footer.privacyLabel': `Privacitat`,
         'footer.privacyMessage': `Els fitxers es processen localment en aquest navegador. Només es recullen estadístiques d'ús agregades pròpies i no s'envien fitxers ni dades a tercers.`,
-        'footer.analyticsSummary': `Visites {total} · Avui {today}`,
         'viewer.zoom.label': `Zoom:`,
         'viewer.zoom.inputLabel': `Percentatge de zoom`,
         'viewer.zoom.fit': `Ajusta l'amplada`,
@@ -522,7 +547,6 @@
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Licenza do código: AGPL v3</a>`,
         'footer.privacyLabel': `Privacidade`,
         'footer.privacyMessage': `Os ficheiros procésanse localmente neste navegador. Só se recollen estatísticas de uso agregadas propias e non se envían ficheiros nin datos a terceiros.`,
-        'footer.analyticsSummary': `Visitas {total} · Hoxe {today}`,
         'viewer.zoom.label': `Zoom:`,
         'viewer.zoom.inputLabel': `Porcentaxe de zoom`,
         'viewer.zoom.fit': `Axustar ancho`,
@@ -605,7 +629,6 @@
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Kodearen lizentzia: AGPL v3</a>`,
         'footer.privacyLabel': `Pribatutasuna`,
         'footer.privacyMessage': `Fitxategiak nabigatzaile honetan lokalki prozesatzen dira. Erabilera-estatistika agregatu propioak baino ez dira biltzen, eta ez zaie hirugarrenei fitxategirik edo daturik bidaltzen.`,
-        'footer.analyticsSummary': `Bisitak {total} · Gaur {today}`,
         'viewer.zoom.label': `Zooma:`,
         'viewer.zoom.inputLabel': `Zoomaren ehunekoa`,
         'viewer.zoom.fit': `Doitu zabalera`,
@@ -688,7 +711,6 @@
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Code license: AGPL v3</a>`,
         'footer.privacyLabel': `Privacy`,
         'footer.privacyMessage': `Files are processed locally in this browser. The app only collects its own aggregated usage statistics and does not send files or data to third parties.`,
-        'footer.analyticsSummary': `Visits {total} · Today {today}`,
         'viewer.zoom.label': `Zoom:`,
         'viewer.zoom.inputLabel': `Zoom percentage`,
         'viewer.zoom.fit': `Fit width`,
@@ -788,7 +810,6 @@
     const searchNextBtn = document.getElementById('searchNext');
     const searchClearBtn = document.getElementById('searchClear');
     const searchStatusEl = document.getElementById('searchStatus');
-    const analyticsSummaryEl = document.getElementById('analyticsSummary');
     const privacyToggleBtn = document.getElementById('privacyToggle');
     const privacyMessageEl = document.getElementById('privacyMessage');
     let lastFocusBeforeModal = null;
@@ -835,7 +856,6 @@
     let activeMatchIndex = -1;
     let searchDebounceId = null;
     let searchRequestId = 0;
-    let analyticsSummary = null;
     let privacyExpanded = false;
 
     const observer = 'IntersectionObserver' in window
@@ -974,6 +994,19 @@
     privacyToggleBtn?.addEventListener('click', () => {
       privacyExpanded = !privacyExpanded;
       renderFooterState();
+    });
+    document.addEventListener('click', (event) => {
+      if (!privacyExpanded) return;
+      if (privacyToggleBtn && privacyToggleBtn.contains(event.target)) return;
+      if (privacyMessageEl && privacyMessageEl.contains(event.target)) return;
+      privacyExpanded = false;
+      renderFooterState();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && privacyExpanded) {
+        privacyExpanded = false;
+        renderFooterState();
+      }
     });
 
     searchForm?.addEventListener('submit', (event) => {
@@ -2511,20 +2544,11 @@
     }
 
     function renderFooterState() {
-      if (analyticsSummaryEl) {
-        if (analyticsSummary) {
-          analyticsSummaryEl.textContent = t('footer.analyticsSummary', {
-            total: formatNumber(analyticsSummary.total || 0),
-            today: formatNumber(analyticsSummary.today || 0)
-          });
-          analyticsSummaryEl.hidden = false;
-        } else {
-          analyticsSummaryEl.hidden = true;
-          analyticsSummaryEl.textContent = '';
-        }
-      }
       if (privacyMessageEl) {
         privacyMessageEl.hidden = !privacyExpanded;
+      }
+      if (privacyToggleBtn) {
+        privacyToggleBtn.setAttribute('aria-expanded', privacyExpanded ? 'true' : 'false');
       }
     }
 
@@ -2568,13 +2592,6 @@
       };
       const timeoutId = window.setTimeout(cleanup, 4000);
       window[callbackName] = (payload) => {
-        if (payload && payload.ok) {
-          analyticsSummary = {
-            total: Number(payload.total) || 0,
-            today: Number(payload.today) || 0
-          };
-          renderFooterState();
-        }
         cleanup();
       };
       script.async = true;
