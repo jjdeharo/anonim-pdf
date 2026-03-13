@@ -130,10 +130,11 @@
     }
     .footerLinkButton:hover,
     .footerLinkButton:focus-visible { opacity: 1; }
+    .privacyMetaLine { display: inline-flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
     .privacyPopoverWrap { position: relative; display: inline-flex; align-items: center; }
     .privacyPopover {
       position: absolute;
-      left: 0;
+      right: 0;
       bottom: calc(100% + .45rem);
       width: min(26rem, calc(100vw - 4rem));
       padding: .7rem .85rem;
@@ -148,7 +149,7 @@
     .privacyPopover::after {
       content: '';
       position: absolute;
-      left: 1rem;
+      right: 1rem;
       top: 100%;
       width: .7rem;
       height: .7rem;
@@ -302,14 +303,17 @@
       <details>
         <summary data-i18n="details.credits.title">Créditos y soporte</summary>
         <p class="muted" data-i18n="details.credits.contact" data-i18n-type="html">¿Dudas o sugerencias? Pulsa el botón verde <a href="https://github.com/jjdeharo/anonim-pdf/issues" style="color:inherit; text-decoration:underline;">New issue</a> en GitHub.</p>
+        <p class="muted" data-i18n="details.credits.owner" data-i18n-type="html">Anonimizador de PDF · © 2025 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Recurso: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a></p>
         <p class="muted">
-          <span class="privacyPopoverWrap">
-            <button id="privacyToggle" type="button" class="footerLinkButton" data-i18n="footer.privacyLabel" aria-expanded="false">Privacidad</button>
-            <span id="privacyMessage" class="privacyPopover" hidden data-i18n="footer.privacyMessage">Los archivos se procesan localmente en este navegador. Solo se recogen estadísticas de uso agregadas propias y no se envían archivos ni datos a terceros.</span>
+          <span class="privacyMetaLine">
+            <span data-i18n="details.credits.license" data-i18n-type="html"><a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Licencia del código: AGPL v3</a></span>
+            <span>·</span>
+            <span class="privacyPopoverWrap">
+              <button id="privacyToggle" type="button" class="footerLinkButton" data-i18n="footer.privacyLabel" aria-expanded="false">Privacidad</button>
+              <span id="privacyMessage" class="privacyPopover" hidden data-i18n="footer.privacyMessage">Los archivos se procesan localmente en este navegador. Solo se recogen estadísticas de uso agregadas propias y no se envían archivos ni datos a terceros.</span>
+            </span>
           </span>
         </p>
-        <p class="muted" data-i18n="details.credits.owner" data-i18n-type="html">Anonimizador de PDF · © 2025 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Recurso: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a></p>
-        <p class="muted" data-i18n="details.credits.license" data-i18n-type="html"><a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Licencia del código: AGPL v3</a></p>
       </details>
 
     </section>
