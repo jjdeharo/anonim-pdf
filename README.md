@@ -1,6 +1,6 @@
 # Anonimizador de PDF
 
-Aplicación web local para anonimizar PDFs o imágenes dibujando rectángulos sobre la vista previa. Todo el procesamiento ocurre en el navegador, sin subir archivos a servidores externos.
+Aplicación web local para anonimizar PDFs o imágenes dibujando rectángulos sobre la vista previa. Todo el procesamiento de archivos ocurre en el navegador, sin subir documentos a servidores externos.
 
 ## Características
 
@@ -32,6 +32,10 @@ npx playwright test
 ```
 
 Durante el desarrollo puedes servir el proyecto con `npx http-server .` o abrir `index.html` directamente en el navegador. La aplicación utiliza pdf.js y jsPDF desde la carpeta `vendor`, por lo que funciona sin conexión.
+
+## Privacidad
+
+Los archivos se procesan localmente en este navegador. La aplicación puede mostrar un resumen discreto de uso y recoger estadísticas agregadas propias para medir su utilización, sin almacenar direcciones IP ni enviar archivos a terceros.
 
 ## Licencias
 

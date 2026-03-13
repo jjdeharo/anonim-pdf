@@ -115,6 +115,23 @@
     .pageView.active { outline: 2px solid #16a34a; outline-offset: 6px; }
     .badget { font-size: .85rem; opacity: .8; }
     footer { padding: .75rem 1rem; border-top: 1px solid #8883; }
+    .appFooter { display: flex; flex-wrap: wrap; gap: .5rem .8rem; align-items: center; }
+    .footerLinkButton {
+      appearance: none;
+      border: 0;
+      background: none;
+      padding: 0;
+      margin: 0;
+      color: inherit;
+      font: inherit;
+      opacity: .92;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: .12em;
+    }
+    .footerLinkButton:hover,
+    .footerLinkButton:focus-visible { opacity: 1; }
+    .footerChunk[hidden] { display: none; }
     #profModal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, #000 55%, transparent 45%); backdrop-filter: blur(4px); padding: 1.5rem; z-index: 999; opacity: 0; pointer-events: none; transition: opacity .25s ease; }
     #profModal.active { opacity: 1; pointer-events: auto; }
     #profModal .modalDialog { max-width: 640px; width: min(100%, 640px); background: color-mix(in srgb, canvas 92%, #16a34a 8%); color: inherit; border: 1px solid color-mix(in srgb, #16a34a 35%, transparent 65%); border-radius: .9rem; box-shadow: 0 14px 32px #0006; padding: 1.2rem 1.4rem 1.5rem; display: flex; flex-direction: column; gap: .85rem; position: relative; }
@@ -253,7 +270,7 @@
         <ul>
           <li data-i18n="details.security.item1">La exportación genera un PDF de imágenes (rasterizado). El texto original desaparece: ya no es seleccionable ni extraíble como texto.</li>
           <li data-i18n="details.security.item2">Esto es adecuado para ocultar nombres propios de trabajos entregados, con la contrapartida de mayor tamaño y pérdida de accesibilidad.</li>
-          <li data-i18n="details.security.item3">Uso totalmente local en tu navegador.</li>
+          <li data-i18n="details.security.item3">El tratamiento de archivos se realiza localmente en tu navegador.</li>
         </ul>
       </details>
 
@@ -285,7 +302,11 @@
     </div>
   </div>
 
-  <footer class="muted"></footer>
+  <footer class="muted appFooter">
+    <span id="analyticsSummary" class="footerChunk" hidden></span>
+    <button id="privacyToggle" type="button" class="footerLinkButton footerChunk" data-i18n="footer.privacyLabel">Privacidad</button>
+    <span id="privacyMessage" class="footerChunk" hidden data-i18n="footer.privacyMessage">Los archivos se procesan localmente en este navegador. Solo se recogen estadísticas de uso agregadas propias y no se envían archivos ni datos a terceros.</span>
+  </footer>
 
 <script>
   window.addEventListener('DOMContentLoaded', () => {
@@ -293,6 +314,10 @@
     const SUPPORTED_LOCALES = ['es', 'ca', 'gl', 'eu', 'en'];
     const FALLBACK_LOCALE = 'es';
     const LOCALE_INTL = { es: 'es-ES', ca: 'ca-ES', gl: 'gl-ES', eu: 'eu-ES', en: 'en' };
+    const ANALYTICS_SITE_ID = 'anonim-pdf';
+    const ANALYTICS_ENDPOINT = 'https://bilateria.org/app/estadistica/anonim-pdf/track.php';
+    const ANALYTICS_COOLDOWN_MS = 30 * 60 * 1000;
+    const ANALYTICS_LAST_VISIT_KEY = `analytics:last-visit:${ANALYTICS_SITE_ID}`;
     const TRANSLATIONS = {
       es: {
         'app.windowTitle': `Anonimizador de PDF e imágenes — cliente`,
@@ -324,11 +349,14 @@
         'details.security.title': `Notas sobre seguridad del anonimizado`,
         'details.security.item1': `La exportación genera un PDF de imágenes (rasterizado). El texto original desaparece: ya no es seleccionable ni extraíble como texto.`,
         'details.security.item2': `Esto es adecuado para ocultar nombres propios de trabajos entregados, con la contrapartida de mayor tamaño y pérdida de accesibilidad.`,
-        'details.security.item3': `Uso totalmente local en tu navegador.`,
+        'details.security.item3': `El tratamiento de archivos se realiza localmente en tu navegador.`,
         'details.credits.title': `Créditos y soporte`,
         'details.credits.contact': `¿Dudas o sugerencias? Pulsa el botón verde <a href="https://github.com/jjdeharo/anonim-pdf/issues" style="color:inherit; text-decoration:underline;">New issue</a> en GitHub.`,
         'details.credits.owner': `Anonimizador de PDF · © 2025 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Recurso: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Licencia del código: AGPL v3</a>`,
+        'footer.privacyLabel': `Privacidad`,
+        'footer.privacyMessage': `Los archivos se procesan localmente en este navegador. Solo se recogen estadísticas de uso agregadas propias y no se envían archivos ni datos a terceros.`,
+        'footer.analyticsSummary': `Visitas {total} · Hoy {today}`,
         'viewer.zoom.label': `Zoom:`,
         'viewer.zoom.inputLabel': `Porcentaje de zoom`,
         'viewer.zoom.fit': `Ajustar ancho`,
@@ -404,11 +432,14 @@
         'details.security.title': `Notes sobre la seguretat de l'anonimització`,
         'details.security.item1': `L'exportació genera un PDF d'imatges (rasteritzat). El text original desapareix: ja no és seleccionable ni es pot extreure com a text.`,
         'details.security.item2': `És adequat per ocultar noms propis de treballs entregats, amb la contrapartida d'un pes més gran i pèrdua d'accessibilitat.`,
-        'details.security.item3': `Ús totalment local al teu navegador.`,
+        'details.security.item3': `El tractament dels fitxers es fa localment al teu navegador.`,
         'details.credits.title': `Crèdits i suport`,
         'details.credits.contact': `Dubtes o suggeriments? Prem el botó verd <a href="https://github.com/jjdeharo/anonim-pdf/issues" style="color:inherit; text-decoration:underline;">New issue</a> a GitHub.`,
         'details.credits.owner': `Anonimitzador de PDF · © 2025 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Recurs: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Llicència del codi: AGPL v3</a>`,
+        'footer.privacyLabel': `Privacitat`,
+        'footer.privacyMessage': `Els fitxers es processen localment en aquest navegador. Només es recullen estadístiques d'ús agregades pròpies i no s'envien fitxers ni dades a tercers.`,
+        'footer.analyticsSummary': `Visites {total} · Avui {today}`,
         'viewer.zoom.label': `Zoom:`,
         'viewer.zoom.inputLabel': `Percentatge de zoom`,
         'viewer.zoom.fit': `Ajusta l'amplada`,
@@ -484,11 +515,14 @@
         'details.security.title': `Notas sobre a seguridade da anonimización`,
         'details.security.item1': `A exportación xera un PDF de imaxes (rasterizado). O texto orixinal desaparece: xa non é seleccionable nin extraíble como texto.`,
         'details.security.item2': `É axeitado para agochar nomes propios de traballos entregados, coa contrapartida dun maior tamaño e perda de accesibilidade.`,
-        'details.security.item3': `Uso totalmente local no teu navegador.`,
+        'details.security.item3': `O tratamento dos ficheiros realízase localmente no teu navegador.`,
         'details.credits.title': `Créditos e soporte`,
         'details.credits.contact': `Tes dúbidas ou suxestións? Preme o botón verde <a href="https://github.com/jjdeharo/anonim-pdf/issues" style="color:inherit; text-decoration:underline;">New issue</a> en GitHub.`,
         'details.credits.owner': `Anonimizador de PDF · © 2025 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Recurso: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Licenza do código: AGPL v3</a>`,
+        'footer.privacyLabel': `Privacidade`,
+        'footer.privacyMessage': `Os ficheiros procésanse localmente neste navegador. Só se recollen estatísticas de uso agregadas propias e non se envían ficheiros nin datos a terceiros.`,
+        'footer.analyticsSummary': `Visitas {total} · Hoxe {today}`,
         'viewer.zoom.label': `Zoom:`,
         'viewer.zoom.inputLabel': `Porcentaxe de zoom`,
         'viewer.zoom.fit': `Axustar ancho`,
@@ -564,11 +598,14 @@
         'details.security.title': `Anonimizazioaren segurtasun-oharrak`,
         'details.security.item1': `Esportazioak irudiz osatutako PDFa sortzen du (rasterizatua). Jatorrizko testua desagertu egiten da: ez da hauta daitekeena ezta testu gisa ateragarria ere.`,
         'details.security.item2': `Egokia da ikasleen lanetako izen propioak ezkutatzeko, fitxategia handiagoa eta irisgarritasuna txikiagoa izatearen truke.`,
-        'details.security.item3': `Erabilera erabat lokala da zure nabigatzailean.`,
+        'details.security.item3': `Fitxategien tratamendua lokalki egiten da zure nabigatzailean.`,
         'details.credits.title': `Kredituak eta laguntza`,
         'details.credits.contact': `Zalantzak edo iradokizunak? Sakatu botoi berdea <a href="https://github.com/jjdeharo/anonim-pdf/issues" style="color:inherit; text-decoration:underline;">New issue</a> GitHuben.`,
         'details.credits.owner': `PDF eta irudien anonimizatzailea · © 2025 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Baliabidea: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Kodearen lizentzia: AGPL v3</a>`,
+        'footer.privacyLabel': `Pribatutasuna`,
+        'footer.privacyMessage': `Fitxategiak nabigatzaile honetan lokalki prozesatzen dira. Erabilera-estatistika agregatu propioak baino ez dira biltzen, eta ez zaie hirugarrenei fitxategirik edo daturik bidaltzen.`,
+        'footer.analyticsSummary': `Bisitak {total} · Gaur {today}`,
         'viewer.zoom.label': `Zooma:`,
         'viewer.zoom.inputLabel': `Zoomaren ehunekoa`,
         'viewer.zoom.fit': `Doitu zabalera`,
@@ -644,11 +681,14 @@
         'details.security.title': `Anonymization safety notes`,
         'details.security.item1': `Exporting creates an image-based (rasterized) PDF. The original text disappears: it is no longer selectable or extractable.`,
         'details.security.item2': `Ideal for hiding pupil names in submitted work, at the cost of larger files and reduced accessibility.`,
-        'details.security.item3': `Everything runs locally in your browser.`,
+        'details.security.item3': `File processing runs locally in your browser.`,
         'details.credits.title': `Credits & support`,
         'details.credits.contact': `Questions or suggestions? Click the green <a href="https://github.com/jjdeharo/anonim-pdf/issues" style="color:inherit; text-decoration:underline;">New issue</a> button on GitHub.`,
         'details.credits.owner': `PDF & Image Anonymizer · © 2025 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Resource: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Code license: AGPL v3</a>`,
+        'footer.privacyLabel': `Privacy`,
+        'footer.privacyMessage': `Files are processed locally in this browser. The app only collects its own aggregated usage statistics and does not send files or data to third parties.`,
+        'footer.analyticsSummary': `Visits {total} · Today {today}`,
         'viewer.zoom.label': `Zoom:`,
         'viewer.zoom.inputLabel': `Zoom percentage`,
         'viewer.zoom.fit': `Fit width`,
@@ -748,6 +788,9 @@
     const searchNextBtn = document.getElementById('searchNext');
     const searchClearBtn = document.getElementById('searchClear');
     const searchStatusEl = document.getElementById('searchStatus');
+    const analyticsSummaryEl = document.getElementById('analyticsSummary');
+    const privacyToggleBtn = document.getElementById('privacyToggle');
+    const privacyMessageEl = document.getElementById('privacyMessage');
     let lastFocusBeforeModal = null;
 
     let pdfDoc = null;
@@ -792,6 +835,8 @@
     let activeMatchIndex = -1;
     let searchDebounceId = null;
     let searchRequestId = 0;
+    let analyticsSummary = null;
+    let privacyExpanded = false;
 
     const observer = 'IntersectionObserver' in window
       ? new IntersectionObserver((entries) => {
@@ -812,6 +857,8 @@
     applyLocale(currentLocale, { skipPersist: true, initial: true });
     setFileDropStatus(getDefaultDropText(), false);
     resetExportControls();
+    renderFooterState();
+    scheduleAnalyticsLoad();
 
     const storedControlsHidden = localStorage.getItem(CONTROLS_HIDDEN_KEY) === 'true';
     setControlsHidden(storedControlsHidden);
@@ -922,6 +969,11 @@
     languageSelect?.addEventListener('change', (event) => {
       const nextLocale = event.target.value;
       applyLocale(nextLocale);
+    });
+
+    privacyToggleBtn?.addEventListener('click', () => {
+      privacyExpanded = !privacyExpanded;
+      renderFooterState();
     });
 
     searchForm?.addEventListener('submit', (event) => {
@@ -1627,6 +1679,8 @@
         showControlsBtn.setAttribute('title', showButtonLabel);
       }
       syncViewerHeight();
+      refreshFitScale().catch((err) => console.error(err));
+      scheduleFitRefresh(380);
     }
 
     function resetExportControls() {
@@ -2162,7 +2216,7 @@
     }
 
     function formatZoomPercent(scaleFactor) {
-      return (scaleFactor * 100).toFixed(2).replace(/\.?0+$/, '');
+      return (scaleFactor * 100).toFixed(1);
     }
 
     function parseZoomPercent(rawValue) {
@@ -2295,10 +2349,37 @@
     function computeScaleForWidth(pageWidth) {
       const containerWidth = viewerContainer.clientWidth || viewerContainer.getBoundingClientRect().width;
       if (!containerWidth) return 1;
-      const available = Math.max(containerWidth - 24, 200);
+      const SIDE_MARGIN = 32;
+      const available = Math.max(containerWidth - SIDE_MARGIN, Math.min(containerWidth * 0.6, 200));
       const fitScale = available / pageWidth;
       if (!Number.isFinite(fitScale) || fitScale <= 0) return 1;
-      return Math.min(1.3, fitScale);
+      return Math.min(2.2, fitScale);
+    }
+
+    async function refreshFitScale() {
+      if (!docType || !basePageWidth) return;
+      const newFit = computeScaleForWidth(basePageWidth);
+      if (!Number.isFinite(newFit) || newFit <= 0) return;
+      const prevScale = scale;
+      fitScale = newFit;
+      const newScale = fitScale * zoomFactor;
+      const factor = newScale / prevScale;
+      scale = newScale;
+      if (Math.abs(factor - 1) > 0.001) {
+        rescaleRects(factor);
+      }
+      await rerenderAllPages();
+      redrawAllOverlays();
+      updateZoomDisplay();
+      syncViewerHeight();
+    }
+
+    function scheduleFitRefresh(delay = 0) {
+      if (!docType || !basePageWidth) return;
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        refreshFitScale().catch((err) => console.error(err));
+      }, Math.max(0, delay));
     }
 
     function clamp(value, min, max) {
@@ -2307,24 +2388,7 @@
 
     window.addEventListener('resize', () => {
       syncViewerHeight();
-      if (!docType || !basePageWidth) return;
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(async () => {
-        const newFit = computeScaleForWidth(basePageWidth);
-        if (!Number.isFinite(newFit) || newFit <= 0) return;
-        const prevScale = scale;
-        fitScale = newFit;
-        const newScale = fitScale * zoomFactor;
-        const factor = newScale / prevScale;
-        scale = newScale;
-        if (Math.abs(factor - 1) > 0.001) {
-          rescaleRects(factor);
-        }
-        await rerenderAllPages();
-        redrawAllOverlays();
-        updateZoomDisplay();
-        syncViewerHeight();
-      }, 180);
+      scheduleFitRefresh(180);
     });
 
     function normalizeExtension(ext, defaultExt = '') {
@@ -2446,6 +2510,79 @@
       return new Intl.NumberFormat(code).format(value);
     }
 
+    function renderFooterState() {
+      if (analyticsSummaryEl) {
+        if (analyticsSummary) {
+          analyticsSummaryEl.textContent = t('footer.analyticsSummary', {
+            total: formatNumber(analyticsSummary.total || 0),
+            today: formatNumber(analyticsSummary.today || 0)
+          });
+          analyticsSummaryEl.hidden = false;
+        } else {
+          analyticsSummaryEl.hidden = true;
+          analyticsSummaryEl.textContent = '';
+        }
+      }
+      if (privacyMessageEl) {
+        privacyMessageEl.hidden = !privacyExpanded;
+      }
+    }
+
+    function shouldTrackAnalyticsVisit() {
+      try {
+        const lastVisit = parseInt(localStorage.getItem(ANALYTICS_LAST_VISIT_KEY) || '0', 10);
+        if (lastVisit && (Date.now() - lastVisit) < ANALYTICS_COOLDOWN_MS) {
+          return false;
+        }
+        localStorage.setItem(ANALYTICS_LAST_VISIT_KEY, String(Date.now()));
+      } catch (err) {
+        // storage might be unavailable
+      }
+      return true;
+    }
+
+    function scheduleAnalyticsLoad() {
+      const start = () => loadAnalyticsSummary();
+      if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(start, { timeout: 1800 });
+      } else {
+        window.setTimeout(start, 700);
+      }
+    }
+
+    function loadAnalyticsSummary() {
+      const trackVisit = shouldTrackAnalyticsVisit();
+      const callbackName = `anonimPdfAnalytics_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+      const script = document.createElement('script');
+      let finished = false;
+      const cleanup = () => {
+        if (finished) return;
+        finished = true;
+        window.clearTimeout(timeoutId);
+        try {
+          delete window[callbackName];
+        } catch (err) {
+          window[callbackName] = undefined;
+        }
+        script.remove();
+      };
+      const timeoutId = window.setTimeout(cleanup, 4000);
+      window[callbackName] = (payload) => {
+        if (payload && payload.ok) {
+          analyticsSummary = {
+            total: Number(payload.total) || 0,
+            today: Number(payload.today) || 0
+          };
+          renderFooterState();
+        }
+        cleanup();
+      };
+      script.async = true;
+      script.onerror = cleanup;
+      script.src = `${ANALYTICS_ENDPOINT}?callback=${encodeURIComponent(callbackName)}&referrer=${encodeURIComponent(document.referrer || '')}${trackVisit ? '' : '&summary_only=1'}`;
+      document.head.appendChild(script);
+    }
+
     function refreshExportModeLabels() {
       if (!exportModeEl) return;
       const options = Array.from(exportModeEl.options);
@@ -2476,6 +2613,7 @@
       refreshExportModeLabels();
       updateExportButtonLabel();
       updateExportNotice();
+      renderFooterState();
       setControlsHidden(document.body.classList.contains('controlsHidden'));
       if (!docType && !fileDrop.classList.contains('hasFile')) {
         setFileDropStatus(getDefaultDropText(), false);
