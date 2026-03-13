@@ -13,7 +13,7 @@
     :root { color-scheme: light dark; }
     * { box-sizing: border-box; }
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji"; margin: 0; }
-    header { position: sticky; top: 0; padding: .75rem 1rem; border-bottom: 1px solid #8883; backdrop-filter: blur(6px); background: color-mix(in srgb, canvas 92%, canvastext 8%); z-index: 30; }
+    header { position: sticky; top: 0; padding: .25rem 1rem; border-bottom: 1px solid #8883; backdrop-filter: blur(6px); background: color-mix(in srgb, canvas 92%, canvastext 8%); z-index: 30; }
     .headerBar { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; }
     .headerBrand { display: flex; align-items: center; gap: .6rem; min-width: 200px; }
     .headerToolbar { flex: 1 1 320px; display: flex; align-items: center; justify-content: center; gap: .75rem; flex-wrap: wrap; }
@@ -131,12 +131,19 @@
     .footerLinkButton:hover,
     .footerLinkButton:focus-visible { opacity: 1; }
     .privacyMetaLine { display: inline-flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
-    .privacyPopoverWrap { position: relative; display: inline-flex; align-items: center; }
+    .privacyPopoverWrap { display: inline-flex; align-items: center; }
     .privacyPopover {
-      position: absolute;
-      right: 0;
-      bottom: calc(100% + .45rem);
-      width: min(26rem, calc(100vw - 4rem));
+      position: fixed;
+      display: block;
+      left: 1rem;
+      top: 1rem;
+      width: min(26rem, calc(100vw - 2rem));
+      max-width: calc(100vw - 2rem);
+      max-height: calc(100vh - 2rem);
+      box-sizing: border-box;
+      overflow: auto;
+      white-space: normal;
+      overflow-wrap: anywhere;
       padding: .7rem .85rem;
       border: 1px solid color-mix(in srgb, canvastext 18%, transparent 82%);
       border-radius: .75rem;
@@ -146,18 +153,6 @@
       z-index: 20;
     }
     .privacyPopover[hidden] { display: none; }
-    .privacyPopover::after {
-      content: '';
-      position: absolute;
-      right: 1rem;
-      top: 100%;
-      width: .7rem;
-      height: .7rem;
-      background: inherit;
-      border-right: 1px solid color-mix(in srgb, canvastext 18%, transparent 82%);
-      border-bottom: 1px solid color-mix(in srgb, canvastext 18%, transparent 82%);
-      transform: rotate(45deg);
-    }
     #profModal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, #000 55%, transparent 45%); backdrop-filter: blur(4px); padding: 1.5rem; z-index: 999; opacity: 0; pointer-events: none; transition: opacity .25s ease; }
     #profModal.active { opacity: 1; pointer-events: auto; }
     #profModal .modalDialog { max-width: 640px; width: min(100%, 640px); background: color-mix(in srgb, canvas 92%, #16a34a 8%); color: inherit; border: 1px solid color-mix(in srgb, #16a34a 35%, transparent 65%); border-radius: .9rem; box-shadow: 0 14px 32px #0006; padding: 1.2rem 1.4rem 1.5rem; display: flex; flex-direction: column; gap: .85rem; position: relative; }
@@ -208,7 +203,6 @@
       </div>
     </div>
     <label for="languageSelect" class="langSelector">
-      <span data-i18n="lang.label">Idioma</span>
       <select id="languageSelect">
         <option value="es">Español</option>
         <option value="ca">Català</option>
@@ -1012,6 +1006,16 @@
         renderFooterState();
       }
     });
+    window.addEventListener('resize', () => {
+      if (privacyExpanded) {
+        renderFooterState();
+      }
+    });
+    window.addEventListener('scroll', () => {
+      if (privacyExpanded) {
+        renderFooterState();
+      }
+    }, { passive: true });
 
     searchForm?.addEventListener('submit', (event) => {
       event.preventDefault();
@@ -2550,10 +2554,29 @@
     function renderFooterState() {
       if (privacyMessageEl) {
         privacyMessageEl.hidden = !privacyExpanded;
+        if (privacyExpanded && privacyToggleBtn) {
+          positionPrivacyPopover();
+        }
       }
       if (privacyToggleBtn) {
         privacyToggleBtn.setAttribute('aria-expanded', privacyExpanded ? 'true' : 'false');
       }
+    }
+
+    function positionPrivacyPopover() {
+      if (!privacyMessageEl || !privacyToggleBtn) return;
+      const margin = 12;
+      const toggleRect = privacyToggleBtn.getBoundingClientRect();
+      const popoverRect = privacyMessageEl.getBoundingClientRect();
+      const maxLeft = Math.max(margin, window.innerWidth - popoverRect.width - margin);
+      const preferredLeft = toggleRect.right - popoverRect.width;
+      const left = Math.max(margin, Math.min(preferredLeft, maxLeft));
+      let top = toggleRect.top - popoverRect.height - 10;
+      if (top < margin) {
+        top = Math.min(window.innerHeight - popoverRect.height - margin, toggleRect.bottom + 10);
+      }
+      privacyMessageEl.style.left = left + 'px';
+      privacyMessageEl.style.top = Math.max(margin, top) + 'px';
     }
 
     function shouldTrackAnalyticsVisit() {

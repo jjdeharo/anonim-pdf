@@ -76,3 +76,42 @@ test('renders user-provided PDF without blank canvas', async ({ page }) => {
 
   expect({ errors, hasContent }).toEqual({ errors: [], hasContent: true });
 });
+
+test('keeps the privacy popover fully visible when opened', async ({ page }) => {
+  await page.goto(fileUrl);
+
+  await page.locator('#privacyToggle').evaluate((element) => {
+    const details = element.closest('details');
+    if (details) details.open = true;
+  });
+  await page.locator('#privacyToggle').click();
+
+  const popover = page.locator('#privacyMessage');
+  await expect(popover).toBeVisible();
+
+  const metrics = await popover.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return {
+      left: rect.left,
+      top: rect.top,
+      right: rect.right,
+      bottom: rect.bottom,
+      width: rect.width,
+      height: rect.height,
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
+      scrollHeight: element.scrollHeight,
+      clientHeight: element.clientHeight,
+      text: element.textContent || '',
+    };
+  });
+
+  expect(metrics.text.trim().length).toBeGreaterThan(40);
+  expect(metrics.width).toBeGreaterThan(200);
+  expect(metrics.height).toBeGreaterThan(40);
+  expect(metrics.left).toBeGreaterThanOrEqual(0);
+  expect(metrics.top).toBeGreaterThanOrEqual(0);
+  expect(metrics.right).toBeLessThanOrEqual(metrics.viewportWidth);
+  expect(metrics.bottom).toBeLessThanOrEqual(metrics.viewportHeight);
+  expect(metrics.scrollHeight).toBeLessThanOrEqual(metrics.clientHeight);
+});
