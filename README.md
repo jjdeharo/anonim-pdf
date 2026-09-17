@@ -4,7 +4,8 @@ Aplicación web local para anonimizar PDFs o imágenes dibujando rectángulos so
 
 ## Características
 
-- Carga archivos mediante arrastre y suelta o clic (PDF, PNG, JPG, WEBP...).
+- Carga archivos mediante arrastre y suelta o clic (PDF, PNG, JPG, WEBP...), de uno en uno o varios a la vez (hasta 40, por ejemplo los trabajos de una clase).
+- Con varios documentos: lista para revisarlos uno a uno, marca de revisado, copia de los rectángulos de una página a todos los documentos y exportación de todos en un ZIP con el sistema de nombres elegido.
 - Herramientas para situar rectángulos opacos y controlar tamaño, color y opacidad.
 - Doble clic sobre un rectángulo para eliminarlo, incluso si hay varios superpuestos.
 - Exportación a PDF anonimizado, imagen PNG única o ZIP con un PNG por página.
@@ -17,9 +18,10 @@ Aplicación web local para anonimizar PDFs o imágenes dibujando rectángulos so
 2. Arrastra un PDF o una imagen a la zona de carga, o haz clic para seleccionarlo.
 3. Arrastra con el botón izquierdo del ratón para dibujar rectángulos sobre cada página. Ajusta grosor, opacidad y color según necesites.
 4. Arrastra con el botón derecho para crear el mismo rectángulo en la misma posición de todas las páginas del PDF.
-5. Haz doble clic sobre un rectángulo para eliminarlo.
-6. Pulsa el botón “Limpiar rectángulos de esta página” para borrar todos los rectángulos de la página actual.
-7. Elige el formato de exportación (PDF anonimizado, PNG único o ZIP con PNG por página) y descarga el resultado.
+5. Con varios documentos abiertos, el botón “Copiar rectángulos de esta página a todos los documentos” tapa la misma zona en todos y “Exportar todos” descarga un ZIP con todos ellos. Conviene revisar cada documento, porque en los escaneos la posición puede variar.
+6. Haz doble clic sobre un rectángulo para eliminarlo.
+7. Pulsa el botón “Limpiar rectángulos de esta página” para borrar todos los rectángulos de la página actual.
+8. Elige el formato de exportación (PDF anonimizado, PNG único o ZIP con PNG por página) y descarga el resultado.
 
 > ⚠️ **Aviso para el profesorado:** Esta aplicación ofrece herramientas para anonimizar manualmente un PDF o una imagen, ocultando los datos identificativos del alumnado antes de generar un nuevo documento. La inteligencia artificial puede apoyar con análisis parciales o nuevas perspectivas, pero **no sustituye la labor docente**: evaluar, juzgar pedagógicamente y calificar sigue siendo responsabilidad exclusiva del profesorado.
 

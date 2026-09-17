@@ -160,6 +160,31 @@
     #profModal p { margin: 0; line-height: 1.55; }
     #profModal button.modalClose { align-self: flex-end; border: none; background: none; color: inherit; font-size: .95rem; cursor: pointer; padding: .35rem .6rem; border-radius: .5rem; transition: background .2s ease; }
     #profModal button.modalClose:hover { background: color-mix(in srgb, canvas 85%, #16a34a 15%); }
+    .docsSection { border: 1px solid color-mix(in srgb, canvastext 22%, transparent 78%); border-radius: .65rem; margin-bottom: .75rem; padding: .5rem; }
+    .docsSection[hidden] { display: none; }
+    .docsHeader { display: flex; align-items: center; justify-content: space-between; gap: .4rem; margin-bottom: .4rem; }
+    .docsHeader strong { font-size: .92rem; }
+    .docsNav { display: inline-flex; gap: .3rem; }
+    .docsNav button { padding: .25rem .55rem; font-size: .85rem; }
+    .docsNav button:disabled { opacity: .45; cursor: not-allowed; }
+    .docList { list-style: none; margin: 0; padding: 0; max-height: 15rem; overflow-y: auto; display: flex; flex-direction: column; gap: .2rem; }
+    .docItem { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: .25rem; border-radius: .45rem; border: 1px solid transparent; }
+    .docItem.active { border-color: #16a34a; background: color-mix(in srgb, canvas 88%, #16a34a 12%); }
+    .docOpen { display: grid; grid-template-columns: auto 1fr; column-gap: .45rem; text-align: left; border: none; background: none; padding: .3rem .4rem; min-width: 0; color: inherit; }
+    .docIndex { grid-row: span 2; align-self: center; font-size: .8rem; opacity: .7; min-width: 1.4rem; text-align: right; }
+    .docName { font-size: .88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .docMeta { font-size: .78rem; opacity: .8; }
+    .docMeta.pending { color: #b45309; opacity: 1; }
+    .docItem.reviewed .docName { opacity: .65; }
+    .docReviewed { display: inline-flex; padding: .2rem; cursor: pointer; }
+    .docReviewed input { width: 1.05rem; height: 1.05rem; cursor: pointer; }
+    .docRemove { border: none; background: none; padding: .2rem .45rem; font-size: 1.05rem; line-height: 1; color: inherit; opacity: .7; }
+    .docRemove:hover { opacity: 1; }
+    .docsSection.busy .docList, .docsSection.busy .docsNav { pointer-events: none; opacity: .6; }
+    #docsStatus { margin: .4rem 0 0; }
+    #docsStatus:empty { display: none; }
+    #exportAll { font-weight: 600; }
+    #btnCopyToAll:disabled, #exportAll:disabled { opacity: .6; cursor: not-allowed; }
     .infoLink { color: inherit; text-decoration: underline; font-size: .9rem; cursor: pointer; border: none; background: none; padding: 0; }
     .panelInfoLink { margin-left: .35rem; align-self: center; }
   </style>
@@ -228,13 +253,25 @@
         </button>
         <button id="openProfModal" class="infoLink panelInfoLink" type="button" data-i18n="info.noticeButton">Aviso importante</button>
         <div id="fileDrop" class="fileDrop">
-          <input id="file" class="fileDropInput" type="file" accept="application/pdf,image/*" />
+          <input id="file" class="fileDropInput" type="file" accept="application/pdf,image/*" multiple />
           <span data-i18n="drop.default">Arrastra un PDF o imagen o haz clic para abrirlo</span>
         </div>
       </div>
       <div class="row" style="margin-bottom:.5rem; justify-content:flex-start">
         <div><span data-i18n="status.page">Página</span> <span id="pageNum">-</span><span> / </span><span id="pageCount">-</span></div>
       </div>
+      <section id="docsSection" class="docsSection" hidden>
+        <div class="docsHeader">
+          <strong id="docsTitle"></strong>
+          <div class="docsNav">
+            <button id="docPrev" type="button" title="Abrir el documento anterior" data-i18n-attr-title="docs.prevTitle" data-i18n-attr-aria-label="docs.prevTitle">&lsaquo;</button>
+            <button id="docNext" type="button" title="Abrir el documento siguiente" data-i18n-attr-title="docs.nextTitle" data-i18n-attr-aria-label="docs.nextTitle">&rsaquo;</button>
+            <button id="docsCloseAll" type="button" title="Quitar todos los documentos de la lista" data-i18n="docs.closeAll" data-i18n-attr-title="docs.closeAllTitle">Cerrar todos</button>
+          </div>
+        </div>
+        <ol id="docList" class="docList"></ol>
+        <p id="docsStatus" class="muted" aria-live="polite"></p>
+      </section>
       <details class="panelCollapsible" id="usageSection">
         <summary data-i18n="controls.usage.title">Instrucciones</summary>
         <div class="collapsibleBody">
@@ -264,6 +301,7 @@
         </div>
       </details>
       <button id="btnClearRects" disabled style="margin-bottom:.75rem" data-i18n="controls.clearButton">Limpiar rectángulos de esta página</button>
+      <button id="btnCopyToAll" type="button" hidden disabled style="margin-bottom:.75rem" title="" data-i18n="docs.copyToAll" data-i18n-attr-title="docs.copyToAllTitle">Copiar rectángulos de esta página a todos los documentos</button>
       <fieldset class="namingField" style="margin-bottom:.75rem">
         <legend data-i18n="naming.legend">Nombre del archivo exportado</legend>
         <label>
@@ -282,6 +320,7 @@
           <option value="png" data-i18n="export.mode.pngImage">Imagen PNG anonimizada</option>
         </select>
         <button id="export" disabled data-i18n="export.button.default">Exportar anonimizado</button>
+        <button id="exportAll" type="button" hidden data-i18n-attr-title="export.allTitle"></button>
         <a id="dlLink" download style="display:none"></a>
       </div>
       <p id="exportNotice" class="muted" style="display:none; margin-top:-.25rem; margin-bottom:.75rem;"></p>
@@ -297,7 +336,7 @@
       <details>
         <summary data-i18n="details.credits.title">Créditos y soporte</summary>
         <p class="muted" data-i18n="details.credits.contact" data-i18n-type="html">¿Dudas o sugerencias? Pulsa el botón verde <a href="https://github.com/jjdeharo/anonim-pdf/issues" style="color:inherit; text-decoration:underline;">New issue</a> en GitHub.</p>
-        <p class="muted" data-i18n="details.credits.owner" data-i18n-type="html">Anonimizador de PDF · © 2025 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Recurso: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a></p>
+        <p class="muted" data-i18n="details.credits.owner" data-i18n-type="html">Anonimizador de PDF · © 2025-2026 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Recurso: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a></p>
         <p class="muted">
           <span class="privacyMetaLine">
             <span data-i18n="details.credits.license" data-i18n-type="html"><a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Licencia del código: AGPL v3</a></span>
@@ -349,10 +388,10 @@
         'app.headerTitle': `Anonimizador de PDF e imágenes`,
         'lang.label': `Idioma`,
         'info.noticeButton': `Aviso importante`,
-        'drop.default': `Arrastra un PDF o imagen o haz clic para abrirlo`,
+        'drop.default': `Arrastra uno o varios PDF o imágenes, o haz clic para abrirlos`,
         'status.page': `Página`,
         'controls.usage.title': `Instrucciones`,
-        'controls.usage.help': `<ol class="usageList"><li>Arrastra con el <strong>botón izquierdo</strong> para dibujar un rectángulo en la página actual.</li><li>Arrastra con el <strong>botón derecho</strong> para dibujar el mismo rectángulo en la <strong>misma posición en todas las páginas</strong> del PDF.</li><li>Haz <strong>doble clic</strong> sobre un rectángulo para borrarlo.</li><li>Pulsa el botón <strong>“Limpiar rectángulos de esta página”</strong> para borrar todos los rectángulos de la página actual.</li></ol>`,
+        'controls.usage.help': `<ol class="usageList"><li>Arrastra con el <strong>botón izquierdo</strong> para dibujar un rectángulo en la página actual.</li><li>Arrastra con el <strong>botón derecho</strong> para dibujar el mismo rectángulo en la <strong>misma posición en todas las páginas</strong> del PDF.</li><li>Haz <strong>doble clic</strong> sobre un rectángulo para borrarlo.</li><li>Pulsa el botón <strong>“Limpiar rectángulos de esta página”</strong> para borrar todos los rectángulos de la página actual.</li><li>Se pueden abrir <strong>varios documentos a la vez</strong> (hasta 40). El botón <strong>“Copiar rectángulos de esta página a todos los documentos”</strong> tapa la misma zona en todos; conviene revisar cada uno, porque en los escaneos la posición puede variar un poco.</li></ol>`,
         'controls.rect.title': `Configuración del rectángulo`,
         'controls.rect.stroke': `Grosor del borde:`,
         'controls.rect.opacity': `Opacidad tapa:`,
@@ -377,7 +416,7 @@
         'details.security.item3': `El tratamiento de archivos se realiza localmente en tu navegador.`,
         'details.credits.title': `Créditos y soporte`,
         'details.credits.contact': `¿Dudas o sugerencias? Pulsa el botón verde <a href="https://github.com/jjdeharo/anonim-pdf/issues" style="color:inherit; text-decoration:underline;">New issue</a> en GitHub.`,
-        'details.credits.owner': `Anonimizador de PDF · © 2025 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Recurso: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
+        'details.credits.owner': `Anonimizador de PDF · © 2025-2026 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Recurso: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Licencia del código: AGPL v3</a>`,
         'footer.privacyLabel': `Privacidad`,
         'footer.privacyMessage': `Los archivos se procesan localmente en este navegador. Solo se recogen estadísticas de uso agregadas propias y no se envían archivos ni datos a terceros.`,
@@ -425,16 +464,40 @@
         'export.notice.pngSingle': `Generará una única imagen PNG apilando las {pages} páginas (ancho máximo {width}px y alto limitado a {height}px para que la IA lea el contenido). Puede tardar unos segundos.`,
         'defaults.document': `documento`,
         'defaults.documentPdf': `documento.pdf`,
+        'drop.multiple': `{count} documentos · añadir más`,
+        'docs.title': `Documentos ({count})`,
+        'docs.prevTitle': `Abrir el documento anterior de la lista`,
+        'docs.nextTitle': `Abrir el documento siguiente de la lista`,
+        'docs.closeAll': `Cerrar todos`,
+        'docs.closeAllTitle': `Quitar todos los documentos de la lista. Los archivos originales no se borran.`,
+        'docs.closeAllConfirm': `Se quitarán todos los documentos y se perderán los rectángulos dibujados. ¿Continuar?`,
+        'docs.removeTitle': `Quitar este documento de la lista. El archivo original no se borra.`,
+        'docs.reviewedTitle': `Marcar como revisado`,
+        'docs.pending': `Sin rectángulos`,
+        'docs.rectOne': `1 rectángulo`,
+        'docs.rects': `{count} rectángulos`,
+        'docs.pages': `{count} págs.`,
+        'docs.invalidSkipped': `Se han omitido {count} archivos que no son PDF ni imágenes.`,
+        'docs.limit': `Se admiten como máximo {max} documentos a la vez. Se han omitido {skipped}.`,
+        'docs.copyToAll': `Copiar rectángulos de esta página a todos los documentos`,
+        'docs.copyToAllTitle': `Coloca los rectángulos de esta página en la misma posición y en la misma página del resto de documentos. Sirve cuando el nombre aparece siempre en el mismo sitio.`,
+        'docs.copyDone': `Rectángulos copiados a {count} documentos. Conviene revisarlos uno a uno.`,
+        'export.all': `Exportar todos ({count})`,
+        'export.allTitle': `Descarga un ZIP con todos los documentos anonimizados, con el formato y el sistema de nombres elegidos`,
+        'export.allProgress': `Preparando {current} de {total}…`,
+        'export.allFailed': `No se pudieron procesar estos documentos: {names}`,
+        'export.allLowRes': `{count} imágenes PNG únicas se han generado con menor resolución por la longitud del documento. Conviene comprobar que se leen bien.`,
+        'defaults.documents': `documentos`,
       },
       ca: {
         'app.windowTitle': `Anonimitzador de PDF i imatges — client`,
         'app.headerTitle': `Anonimitzador de PDF i imatges`,
         'lang.label': `Idioma`,
         'info.noticeButton': `Avís important`,
-        'drop.default': `Arrossega un PDF o una imatge o fes clic per obrir-la`,
+        'drop.default': `Arrossega un o diversos PDF o imatges, o fes clic per obrir-los`,
         'status.page': `Pàgina`,
         'controls.usage.title': `Instruccions`,
-        'controls.usage.help': `<ol class="usageList"><li>Arrossega amb el <strong>botó esquerre</strong> per dibuixar un rectangle a la pàgina actual.</li><li>Arrossega amb el <strong>botó dret</strong> per dibuixar el mateix rectangle a la <strong>mateixa posició a totes les pàgines</strong> del PDF.</li><li>Fes <strong>doble clic</strong> sobre un rectangle per esborrar-lo.</li><li>Prem el botó <strong>“Neteja els rectangles d'aquesta pàgina”</strong> per esborrar tots els rectangles de la pàgina actual.</li></ol>`,
+        'controls.usage.help': `<ol class="usageList"><li>Arrossega amb el <strong>botó esquerre</strong> per dibuixar un rectangle a la pàgina actual.</li><li>Arrossega amb el <strong>botó dret</strong> per dibuixar el mateix rectangle a la <strong>mateixa posició a totes les pàgines</strong> del PDF.</li><li>Fes <strong>doble clic</strong> sobre un rectangle per esborrar-lo.</li><li>Prem el botó <strong>“Neteja els rectangles d'aquesta pàgina”</strong> per esborrar tots els rectangles de la pàgina actual.</li><li>Es poden obrir <strong>diversos documents alhora</strong> (fins a 40). El botó <strong>“Copia els rectangles d'aquesta pàgina a tots els documents”</strong> tapa la mateixa zona a tots; convé revisar-los un a un, perquè en els escanejos la posició pot variar una mica.</li></ol>`,
         'controls.rect.title': `Configuració del rectangle`,
         'controls.rect.stroke': `Gruix del contorn:`,
         'controls.rect.opacity': `Opacitat de la cobertura:`,
@@ -459,7 +522,7 @@
         'details.security.item3': `El tractament dels fitxers es fa localment al teu navegador.`,
         'details.credits.title': `Crèdits i suport`,
         'details.credits.contact': `Dubtes o suggeriments? Prem el botó verd <a href="https://github.com/jjdeharo/anonim-pdf/issues" style="color:inherit; text-decoration:underline;">New issue</a> a GitHub.`,
-        'details.credits.owner': `Anonimitzador de PDF · © 2025 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Recurs: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
+        'details.credits.owner': `Anonimitzador de PDF · © 2025-2026 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Recurs: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Llicència del codi: AGPL v3</a>`,
         'footer.privacyLabel': `Privacitat`,
         'footer.privacyMessage': `Els fitxers es processen localment en aquest navegador. Només es recullen estadístiques d'ús agregades pròpies i no s'envien fitxers ni dades a tercers.`,
@@ -507,16 +570,40 @@
         'export.notice.pngSingle': `Generarà una única imatge PNG apilant les {pages} pàgines (amplada màxima {width}px i alçada limitada a {height}px perquè la IA en llegeixi el contingut). Pot trigar uns segons.`,
         'defaults.document': `document`,
         'defaults.documentPdf': `document.pdf`,
+        'drop.multiple': `{count} documents · afegir-ne més`,
+        'docs.title': `Documents ({count})`,
+        'docs.prevTitle': `Obre el document anterior de la llista`,
+        'docs.nextTitle': `Obre el document següent de la llista`,
+        'docs.closeAll': `Tanca-ho tot`,
+        'docs.closeAllTitle': `Treu tots els documents de la llista. Els fitxers originals no s'esborren.`,
+        'docs.closeAllConfirm': `Es trauran tots els documents i es perdran els rectangles dibuixats. Voleu continuar?`,
+        'docs.removeTitle': `Treu aquest document de la llista. El fitxer original no s'esborra.`,
+        'docs.reviewedTitle': `Marca com a revisat`,
+        'docs.pending': `Sense rectangles`,
+        'docs.rectOne': `1 rectangle`,
+        'docs.rects': `{count} rectangles`,
+        'docs.pages': `{count} pàg.`,
+        'docs.invalidSkipped': `S'han omès {count} fitxers que no són PDF ni imatges.`,
+        'docs.limit': `S'admeten com a màxim {max} documents alhora. S'han omès {skipped}.`,
+        'docs.copyToAll': `Copia els rectangles d'aquesta pàgina a tots els documents`,
+        'docs.copyToAllTitle': `Col·loca els rectangles d'aquesta pàgina a la mateixa posició i a la mateixa pàgina de la resta de documents. Serveix quan el nom apareix sempre al mateix lloc.`,
+        'docs.copyDone': `Rectangles copiats a {count} documents. Convé revisar-los un a un.`,
+        'export.all': `Exporta-ho tot ({count})`,
+        'export.allTitle': `Descarrega un ZIP amb tots els documents anonimitzats, amb el format i el sistema de noms triats`,
+        'export.allProgress': `Preparant {current} de {total}…`,
+        'export.allFailed': `No s'han pogut processar aquests documents: {names}`,
+        'export.allLowRes': `{count} imatges PNG úniques s'han generat amb menys resolució per la llargada del document. Convé comprovar que es llegeixen bé.`,
+        'defaults.documents': `documents`,
       },
       gl: {
         'app.windowTitle': `Anonimizador de PDF e imaxes — cliente`,
         'app.headerTitle': `Anonimizador de PDF e imaxes`,
         'lang.label': `Idioma`,
         'info.noticeButton': `Aviso importante`,
-        'drop.default': `Arrastra un PDF ou unha imaxe ou fai clic para abrila`,
+        'drop.default': `Arrastra un ou varios PDF ou imaxes, ou fai clic para abrilos`,
         'status.page': `Páxina`,
         'controls.usage.title': `Instrucións`,
-        'controls.usage.help': `<ol class="usageList"><li>Arrastra co <strong>botón esquerdo</strong> para debuxar un rectángulo na páxina actual.</li><li>Arrastra co <strong>botón dereito</strong> para debuxar o mesmo rectángulo na <strong>mesma posición en todas as páxinas</strong> do PDF.</li><li>Fai <strong>dobre clic</strong> sobre un rectángulo para borralo.</li><li>Preme o botón <strong>“Limpar os rectángulos desta páxina”</strong> para borrar todos os rectángulos da páxina actual.</li></ol>`,
+        'controls.usage.help': `<ol class="usageList"><li>Arrastra co <strong>botón esquerdo</strong> para debuxar un rectángulo na páxina actual.</li><li>Arrastra co <strong>botón dereito</strong> para debuxar o mesmo rectángulo na <strong>mesma posición en todas as páxinas</strong> do PDF.</li><li>Fai <strong>dobre clic</strong> sobre un rectángulo para borralo.</li><li>Preme o botón <strong>“Limpar os rectángulos desta páxina”</strong> para borrar todos os rectángulos da páxina actual.</li><li>Pódense abrir <strong>varios documentos á vez</strong> (ata 40). O botón <strong>“Copiar os rectángulos desta páxina a todos os documentos”</strong> tapa a mesma zona en todos; convén revisalos un a un, porque nas dixitalizacións a posición pode variar un pouco.</li></ol>`,
         'controls.rect.title': `Configuración do rectángulo`,
         'controls.rect.stroke': `Grosor do bordo:`,
         'controls.rect.opacity': `Opacidade da cuberta:`,
@@ -541,7 +628,7 @@
         'details.security.item3': `O tratamento dos ficheiros realízase localmente no teu navegador.`,
         'details.credits.title': `Créditos e soporte`,
         'details.credits.contact': `Tes dúbidas ou suxestións? Preme o botón verde <a href="https://github.com/jjdeharo/anonim-pdf/issues" style="color:inherit; text-decoration:underline;">New issue</a> en GitHub.`,
-        'details.credits.owner': `Anonimizador de PDF · © 2025 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Recurso: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
+        'details.credits.owner': `Anonimizador de PDF · © 2025-2026 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Recurso: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Licenza do código: AGPL v3</a>`,
         'footer.privacyLabel': `Privacidade`,
         'footer.privacyMessage': `Os ficheiros procésanse localmente neste navegador. Só se recollen estatísticas de uso agregadas propias e non se envían ficheiros nin datos a terceiros.`,
@@ -589,16 +676,40 @@
         'export.notice.pngSingle': `Xerarase unha única imaxe PNG apilando as {pages} páxinas (ancho máximo {width}px e alto limitado a {height}px para que a IA lea o contido). Pode tardar uns segundos.`,
         'defaults.document': `documento`,
         'defaults.documentPdf': `documento.pdf`,
+        'drop.multiple': `{count} documentos · engadir máis`,
+        'docs.title': `Documentos ({count})`,
+        'docs.prevTitle': `Abrir o documento anterior da lista`,
+        'docs.nextTitle': `Abrir o documento seguinte da lista`,
+        'docs.closeAll': `Pechar todos`,
+        'docs.closeAllTitle': `Quitar todos os documentos da lista. Os ficheiros orixinais non se borran.`,
+        'docs.closeAllConfirm': `Quitaranse todos os documentos e perderanse os rectángulos debuxados. Continuar?`,
+        'docs.removeTitle': `Quitar este documento da lista. O ficheiro orixinal non se borra.`,
+        'docs.reviewedTitle': `Marcar como revisado`,
+        'docs.pending': `Sen rectángulos`,
+        'docs.rectOne': `1 rectángulo`,
+        'docs.rects': `{count} rectángulos`,
+        'docs.pages': `{count} páx.`,
+        'docs.invalidSkipped': `Omitíronse {count} ficheiros que non son PDF nin imaxes.`,
+        'docs.limit': `Admítense como máximo {max} documentos á vez. Omitíronse {skipped}.`,
+        'docs.copyToAll': `Copiar os rectángulos desta páxina a todos os documentos`,
+        'docs.copyToAllTitle': `Coloca os rectángulos desta páxina na mesma posición e na mesma páxina do resto de documentos. Serve cando o nome aparece sempre no mesmo sitio.`,
+        'docs.copyDone': `Rectángulos copiados a {count} documentos. Convén revisalos un a un.`,
+        'export.all': `Exportar todos ({count})`,
+        'export.allTitle': `Descarga un ZIP con todos os documentos anonimizados, co formato e o sistema de nomes escollidos`,
+        'export.allProgress': `Preparando {current} de {total}…`,
+        'export.allFailed': `Non se puideron procesar estes documentos: {names}`,
+        'export.allLowRes': `{count} imaxes PNG únicas xeráronse con menor resolución pola lonxitude do documento. Convén comprobar que se len ben.`,
+        'defaults.documents': `documentos`,
       },
       eu: {
         'app.windowTitle': `PDF eta irudien anonimizatzailea — bezeroa`,
         'app.headerTitle': `PDF eta irudien anonimizatzailea`,
         'lang.label': `Hizkuntza`,
         'info.noticeButton': `Ohar garrantzitsua`,
-        'drop.default': `Arrastatu PDF bat edo irudi bat edo egin klik irekitzeko`,
+        'drop.default': `Arrastatu PDF edo irudi bat edo gehiago, edo egin klik irekitzeko`,
         'status.page': `Orria`,
         'controls.usage.title': `Argibideak`,
-        'controls.usage.help': `<ol class="usageList"><li>Arratoia <strong>ezker botoiarekin</strong> arrastatu uneko orrian laukizuzen bat marrazteko.</li><li><strong>Eskuineko botoiarekin</strong> arrastatuz, laukizuzen bera <strong>PDFko orri guztietan kokapen berean</strong> marraztuko duzu.</li><li>Egin <strong>klik bikoitza</strong> laukizuzen baten gainean hura ezabatzeko.</li><li>Sakatu <strong>“Garbitu orri honetako laukizuzenak”</strong> botoia uneko orriko laukizuzen guztiak kentzeko.</li></ol>`,
+        'controls.usage.help': `<ol class="usageList"><li>Arratoia <strong>ezker botoiarekin</strong> arrastatu uneko orrian laukizuzen bat marrazteko.</li><li><strong>Eskuineko botoiarekin</strong> arrastatuz, laukizuzen bera <strong>PDFko orri guztietan kokapen berean</strong> marraztuko duzu.</li><li>Egin <strong>klik bikoitza</strong> laukizuzen baten gainean hura ezabatzeko.</li><li>Sakatu <strong>“Garbitu orri honetako laukizuzenak”</strong> botoia uneko orriko laukizuzen guztiak kentzeko.</li><li><strong>Hainbat dokumentu batera</strong> ireki daitezke (40 gehienez). <strong>“Kopiatu orri honetako laukizuzenak dokumentu guztietara”</strong> botoiak eremu bera estaltzen du guztietan; komeni da banan-banan berrikustea, eskaneatutakoetan kokapena apur bat alda daitekeelako.</li></ol>`,
         'controls.rect.title': `Laukizuzenaren konfigurazioa`,
         'controls.rect.stroke': `Ertzaren lodiera:`,
         'controls.rect.opacity': `Estalduraren opakutasuna:`,
@@ -623,7 +734,7 @@
         'details.security.item3': `Fitxategien tratamendua lokalki egiten da zure nabigatzailean.`,
         'details.credits.title': `Kredituak eta laguntza`,
         'details.credits.contact': `Zalantzak edo iradokizunak? Sakatu botoi berdea <a href="https://github.com/jjdeharo/anonim-pdf/issues" style="color:inherit; text-decoration:underline;">New issue</a> GitHuben.`,
-        'details.credits.owner': `PDF eta irudien anonimizatzailea · © 2025 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Baliabidea: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
+        'details.credits.owner': `PDF eta irudien anonimizatzailea · © 2025-2026 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Baliabidea: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Kodearen lizentzia: AGPL v3</a>`,
         'footer.privacyLabel': `Pribatutasuna`,
         'footer.privacyMessage': `Fitxategiak nabigatzaile honetan lokalki prozesatzen dira. Erabilera-estatistika agregatu propioak baino ez dira biltzen, eta ez zaie hirugarrenei fitxategirik edo daturik bidaltzen.`,
@@ -671,16 +782,40 @@
         'export.notice.pngSingle': `PNG irudi bakarra sortuko da {pages} orriak pilatuz (gehienezko zabalera {width}px eta altuera {height}px, AAk edukia irakur dezan). Segundo batzuk behar izan ditzake.`,
         'defaults.document': `dokumentua`,
         'defaults.documentPdf': `dokumentua.pdf`,
+        'drop.multiple': `{count} dokumentu · gehitu gehiago`,
+        'docs.title': `Dokumentuak ({count})`,
+        'docs.prevTitle': `Ireki zerrendako aurreko dokumentua`,
+        'docs.nextTitle': `Ireki zerrendako hurrengo dokumentua`,
+        'docs.closeAll': `Itxi guztiak`,
+        'docs.closeAllTitle': `Kendu dokumentu guztiak zerrendatik. Jatorrizko fitxategiak ez dira ezabatzen.`,
+        'docs.closeAllConfirm': `Dokumentu guztiak kenduko dira eta marraztutako laukizuzenak galduko dira. Jarraitu?`,
+        'docs.removeTitle': `Kendu dokumentu hau zerrendatik. Jatorrizko fitxategia ez da ezabatzen.`,
+        'docs.reviewedTitle': `Markatu berrikusita`,
+        'docs.pending': `Laukizuzenik gabe`,
+        'docs.rectOne': `Laukizuzen 1`,
+        'docs.rects': `{count} laukizuzen`,
+        'docs.pages': `{count} orri`,
+        'docs.invalidSkipped': `PDF edo irudi ez diren {count} fitxategi baztertu dira.`,
+        'docs.limit': `Gehienez {max} dokumentu onartzen dira batera. {skipped} baztertu dira.`,
+        'docs.copyToAll': `Kopiatu orri honetako laukizuzenak dokumentu guztietara`,
+        'docs.copyToAllTitle': `Orri honetako laukizuzenak gainerako dokumentuetako kokapen eta orri berean jartzen ditu. Izena beti leku berean agertzen denean erabilgarria da.`,
+        'docs.copyDone': `Laukizuzenak {count} dokumentutara kopiatu dira. Komeni da banan-banan berrikustea.`,
+        'export.all': `Esportatu guztiak ({count})`,
+        'export.allTitle': `Anonimizatutako dokumentu guztiak dituen ZIP bat deskargatzen du, aukeratutako formatuarekin eta izen-sistemarekin`,
+        'export.allProgress': `{current}/{total} prestatzen…`,
+        'export.allFailed': `Ezin izan dira dokumentu hauek prozesatu: {names}`,
+        'export.allLowRes': `{count} PNG irudi bakar bereizmen txikiagoarekin sortu dira dokumentuaren luzeragatik. Komeni da ondo irakurtzen direla egiaztatzea.`,
+        'defaults.documents': `dokumentuak`,
       },
       en: {
         'app.windowTitle': `PDF & Image Anonymizer — client`,
         'app.headerTitle': `PDF & Image Anonymizer`,
         'lang.label': `Language`,
         'info.noticeButton': `Important notice`,
-        'drop.default': `Drop a PDF or image or click to open`,
+        'drop.default': `Drag one or more PDFs or images, or click to open them`,
         'status.page': `Page`,
         'controls.usage.title': `Instructions`,
-        'controls.usage.help': `<ol class="usageList"><li>Drag with the <strong>left mouse button</strong> to draw a rectangle on the current page.</li><li>Drag with the <strong>right button</strong> to draw the same rectangle in the <strong>same position on every page</strong> of the PDF.</li><li>Double-click a rectangle to delete it.</li><li>Press the <strong>“Clear rectangles on this page”</strong> button to remove all rectangles from the current page.</li></ol>`,
+        'controls.usage.help': `<ol class="usageList"><li>Drag with the <strong>left mouse button</strong> to draw a rectangle on the current page.</li><li>Drag with the <strong>right button</strong> to draw the same rectangle in the <strong>same position on every page</strong> of the PDF.</li><li>Double-click a rectangle to delete it.</li><li>Press the <strong>“Clear rectangles on this page”</strong> button to remove all rectangles from the current page.</li><li>Several documents can be opened <strong>at once</strong> (up to 40). The <strong>“Copy rectangles on this page to all documents”</strong> button covers the same area in all of them; each one should still be checked, because the position may shift slightly in scans.</li></ol>`,
         'controls.rect.title': `Rectangle settings`,
         'controls.rect.stroke': `Border thickness:`,
         'controls.rect.opacity': `Mask opacity:`,
@@ -705,7 +840,7 @@
         'details.security.item3': `File processing runs locally in your browser.`,
         'details.credits.title': `Credits & support`,
         'details.credits.contact': `Questions or suggestions? Click the green <a href="https://github.com/jjdeharo/anonim-pdf/issues" style="color:inherit; text-decoration:underline;">New issue</a> button on GitHub.`,
-        'details.credits.owner': `PDF & Image Anonymizer · © 2025 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Resource: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
+        'details.credits.owner': `PDF & Image Anonymizer · © 2025-2026 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Resource: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Code license: AGPL v3</a>`,
         'footer.privacyLabel': `Privacy`,
         'footer.privacyMessage': `Files are processed locally in this browser. The app only collects its own aggregated usage statistics and does not send files or data to third parties.`,
@@ -753,6 +888,30 @@
         'export.notice.pngSingle': `Generates a single PNG stacking {pages} pages (maximum width {width}px and height capped at {height}px so AI can read the content). It may take a few seconds.`,
         'defaults.document': `document`,
         'defaults.documentPdf': `document.pdf`,
+        'drop.multiple': `{count} documents · add more`,
+        'docs.title': `Documents ({count})`,
+        'docs.prevTitle': `Open the previous document in the list`,
+        'docs.nextTitle': `Open the next document in the list`,
+        'docs.closeAll': `Close all`,
+        'docs.closeAllTitle': `Remove all documents from the list. The original files are not deleted.`,
+        'docs.closeAllConfirm': `All documents will be removed and the drawn rectangles will be lost. Continue?`,
+        'docs.removeTitle': `Remove this document from the list. The original file is not deleted.`,
+        'docs.reviewedTitle': `Mark as reviewed`,
+        'docs.pending': `No rectangles`,
+        'docs.rectOne': `1 rectangle`,
+        'docs.rects': `{count} rectangles`,
+        'docs.pages': `{count} pp.`,
+        'docs.invalidSkipped': `{count} files that are not PDFs or images were skipped.`,
+        'docs.limit': `At most {max} documents can be open at once. {skipped} were skipped.`,
+        'docs.copyToAll': `Copy rectangles on this page to all documents`,
+        'docs.copyToAllTitle': `Places the rectangles on this page in the same position and on the same page of every other document. Useful when the name always appears in the same place.`,
+        'docs.copyDone': `Rectangles copied to {count} documents. Each one should be checked.`,
+        'export.all': `Export all ({count})`,
+        'export.allTitle': `Downloads a ZIP with all anonymised documents, using the chosen format and naming system`,
+        'export.allProgress': `Preparing {current} of {total}…`,
+        'export.allFailed': `These documents could not be processed: {names}`,
+        'export.allLowRes': `{count} single PNG images were generated at lower resolution because of the document length. Check that they are legible.`,
+        'defaults.documents': `documents`,
       },
     };
 
@@ -810,6 +969,15 @@
     const searchStatusEl = document.getElementById('searchStatus');
     const privacyToggleBtn = document.getElementById('privacyToggle');
     const privacyMessageEl = document.getElementById('privacyMessage');
+    const docsSection = document.getElementById('docsSection');
+    const docsTitleEl = document.getElementById('docsTitle');
+    const docListEl = document.getElementById('docList');
+    const docsStatusEl = document.getElementById('docsStatus');
+    const docPrevBtn = document.getElementById('docPrev');
+    const docNextBtn = document.getElementById('docNext');
+    const docsCloseAllBtn = document.getElementById('docsCloseAll');
+    const btnCopyToAll = document.getElementById('btnCopyToAll');
+    const btnExportAll = document.getElementById('exportAll');
     let lastFocusBeforeModal = null;
 
     let pdfDoc = null;
@@ -855,6 +1023,14 @@
     let searchDebounceId = null;
     let searchRequestId = 0;
     let privacyExpanded = false;
+    const MAX_DOCUMENTS = 40;
+    const COPY_RECT_TOLERANCE = 0.002;
+    let documents = [];
+    let activeDocId = null;
+    let nextDocId = 1;
+    let docQueue = Promise.resolve();
+    let batchExporting = false;
+    let docsStatusTimeout = null;
 
     const observer = 'IntersectionObserver' in window
       ? new IntersectionObserver((entries) => {
@@ -932,22 +1108,14 @@
       fileDrop.classList.remove('dragging');
       const files = e.dataTransfer?.files;
       if (!files || !files.length) return;
-      const file = files[0];
-      if (!await openDocument(file)) return;
-      try {
-        const dt = new DataTransfer();
-        dt.items.add(file);
-        fileInput.files = dt.files;
-      } catch (err) {
-        console.warn(t('alerts.syncInputWarn'), err);
-      }
+      await addFiles(files);
     });
 
     fileInput.addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      await openDocument(file);
+      const files = Array.from(e.target.files || []);
       e.target.value = '';
+      if (!files.length) return;
+      await addFiles(files);
     });
 
     exportModeEl.addEventListener('change', () => {
@@ -963,6 +1131,37 @@
       rectsByPage[activePage] = [];
       drawOverlay(activePage);
       updateClearButtonState();
+      renderDocList();
+    });
+
+    btnCopyToAll.addEventListener('click', () => copyActivePageRectsToAll());
+    docPrevBtn.addEventListener('click', () => activateRelativeDocument(-1));
+    docNextBtn.addEventListener('click', () => activateRelativeDocument(1));
+    docsCloseAllBtn.addEventListener('click', () => closeAllDocuments());
+    btnExportAll.addEventListener('click', () => {
+      exportAllDocuments().catch((err) => {
+        console.error(t('alerts.exportErrorLog'), err);
+        alert(t('alerts.exportError'));
+      });
+    });
+    docListEl.addEventListener('click', (event) => {
+      if (batchExporting) return;
+      const item = event.target.closest('.docItem');
+      if (!item) return;
+      const id = Number(item.dataset.id);
+      if (event.target.closest('.docRemove')) {
+        removeDocument(id);
+      } else if (event.target.closest('.docOpen')) {
+        activateDocument(id);
+      }
+    });
+    docListEl.addEventListener('change', (event) => {
+      const checkbox = event.target.closest('.docReviewed input');
+      if (!checkbox) return;
+      const doc = findDocument(Number(checkbox.closest('.docItem').dataset.id));
+      if (!doc) return;
+      doc.reviewed = checkbox.checked;
+      renderDocList();
     });
 
     maskColorEl.addEventListener('change', redrawAllOverlays);
@@ -1095,18 +1294,7 @@
     btnExport.addEventListener('click', async () => {
       if (btnExport.disabled || !docType) return;
       try {
-        if (docType === 'pdf') {
-          const mode = exportModeEl.value;
-          if (mode === 'zip') {
-            await exportPdfAsZip();
-          } else if (mode === 'png-single') {
-            await exportPdfAsSingleImage();
-          } else {
-            await exportPdfAsPdf();
-          }
-        } else if (docType === 'image') {
-          await exportImageAsPng();
-        }
+        await exportActiveDocument();
       } catch (err) {
         console.error(t('alerts.exportErrorLog'), err);
         alert(t('alerts.exportError'));
@@ -1460,24 +1648,170 @@
       return { mask, alpha };
     }
 
-    function getRectScaleForExport(targetScale) {
-      return scale > 0 ? targetScale / scale : targetScale;
+    function getPdfExportMode() {
+      const allowed = ['pdf', 'zip', 'png-single'];
+      if (docType === 'pdf' && allowed.includes(exportModeEl.value)) {
+        return exportModeEl.value;
+      }
+      const stored = localStorage.getItem(EXPORT_MODE_KEY);
+      return allowed.includes(stored) ? stored : 'pdf';
     }
 
-    async function exportPdfAsPdf() {
-      if (!pdfDoc) return;
+    function getExportExtension(docTypeValue, mode) {
+      if (docTypeValue !== 'pdf') return '.png';
+      if (mode === 'zip') return '.zip';
+      if (mode === 'png-single') return '.png';
+      return '.pdf';
+    }
+
+    async function exportActiveDocument() {
+      const doc = getActiveDocument();
+      if (!doc) return;
+      storeActiveRects();
+      const mode = docType === 'pdf' ? exportModeEl.value : 'png';
+      const fileName = buildAnonName(doc.name, getExportExtension(docType, mode));
+      if (docType === 'pdf') {
+        if (mode === 'zip') {
+          const JSZipCtor = getJSZip();
+          if (!JSZipCtor) return;
+          const zip = new JSZipCtor();
+          await addPdfPagesAsPng(pdfDoc, doc.rects, zip);
+          triggerDownload(await zip.generateAsync({ type: 'blob' }), fileName);
+        } else if (mode === 'png-single') {
+          const result = await renderPdfAsSingleImage(pdfDoc, doc.rects);
+          if (result.lowRes) alert(t('alerts.pngScaleNotice'));
+          if (!result.blob) {
+            alert(t('alerts.singlePngFail'));
+            return;
+          }
+          triggerDownload(result.blob, fileName);
+        } else {
+          if (!getJsPdf()) return;
+          triggerDownload(await renderPdfAsPdf(pdfDoc, doc.rects), fileName);
+        }
+      } else if (docType === 'image' && imageDoc) {
+        const blob = await renderImageAsPng(imageDoc, doc.rects);
+        if (!blob) {
+          alert(t('alerts.imagePngFail'));
+          return;
+        }
+        triggerDownload(blob, fileName);
+      }
+    }
+
+    async function exportAllDocuments() {
+      if (batchExporting || documents.length < 2) return;
+      const JSZipCtor = getJSZip();
+      if (!JSZipCtor) return;
+      const mode = getPdfExportMode();
+      if (mode === 'pdf' && documents.some((doc) => doc.type === 'pdf') && !getJsPdf()) return;
+      await docQueue;
+      storeActiveRects();
+      batchExporting = true;
+      setBatchBusy(true);
+      const zip = new JSZipCtor();
+      const usedNames = new Set();
+      const failed = [];
+      let lowResCount = 0;
+      const total = documents.length;
+      try {
+        for (let i = 0; i < total; i++) {
+          const doc = documents[i];
+          btnExportAll.textContent = t('export.allProgress', { current: i + 1, total });
+          const isActive = doc.id === activeDocId;
+          const ext = getExportExtension(doc.type, mode);
+          const fileName = takeUniqueName(buildBatchName(doc, i, total, ext), usedNames);
+          try {
+            if (doc.type === 'pdf') {
+              const pdf = isActive && pdfDoc ? pdfDoc : await openPdfData(await doc.file.arrayBuffer());
+              try {
+                if (mode === 'zip') {
+                  await addPdfPagesAsPng(pdf, doc.rects, zip.folder(fileName.replace(/\.zip$/i, '')));
+                } else if (mode === 'png-single') {
+                  const result = await renderPdfAsSingleImage(pdf, doc.rects);
+                  if (result.lowRes) lowResCount++;
+                  if (!result.blob) throw new Error('png');
+                  zip.file(fileName, result.blob);
+                } else {
+                  zip.file(fileName, await renderPdfAsPdf(pdf, doc.rects));
+                }
+              } finally {
+                if (pdf !== pdfDoc) pdf.destroy();
+              }
+            } else {
+              const image = isActive && imageDoc ? imageDoc : await readImageFile(doc.file);
+              const blob = await renderImageAsPng(image, doc.rects);
+              if (!blob) throw new Error('png');
+              zip.file(fileName, blob);
+            }
+          } catch (err) {
+            console.error(t('alerts.exportErrorLog'), err);
+            failed.push(doc.name);
+          }
+        }
+        if (failed.length < total) {
+          const zipName = namingStrategy === 'fixed' ? 'anonim.zip' : `${getDefaultDocumentsBase()}_anonim.zip`;
+          triggerDownload(await zip.generateAsync({ type: 'blob' }), zipName);
+        }
+      } finally {
+        batchExporting = false;
+        setBatchBusy(false);
+        renderDocList();
+      }
+      if (lowResCount) alert(t('export.allLowRes', { count: lowResCount }));
+      if (failed.length) alert(t('export.allFailed', { names: failed.join(', ') }));
+    }
+
+    function setBatchBusy(busy) {
+      docsSection.classList.toggle('busy', busy);
+      btnExportAll.disabled = busy;
+      btnExport.disabled = busy || !docType;
+      fileDrop.style.pointerEvents = busy ? 'none' : '';
+    }
+
+    function buildBatchName(doc, index, total, ext) {
+      if (namingStrategy === 'fixed') {
+        const digits = Math.max(2, String(total).length);
+        return `anonim-${String(index + 1).padStart(digits, '0')}${ext}`;
+      }
+      return buildAnonName(doc.name, ext);
+    }
+
+    function takeUniqueName(name, usedNames) {
+      let candidate = name;
+      let counter = 2;
+      while (usedNames.has(candidate.toLowerCase())) {
+        candidate = name.replace(/(\.[^.]+)?$/, (ext) => `-${counter}${ext}`);
+        counter++;
+      }
+      usedNames.add(candidate.toLowerCase());
+      return candidate;
+    }
+
+    function getJSZip() {
+      if (typeof window.JSZip !== 'function') {
+        alert(t('alerts.jsZipMissing'));
+        return null;
+      }
+      return window.JSZip;
+    }
+
+    function getJsPdf() {
       const jspdfNs = window.jspdf;
       if (!jspdfNs || typeof jspdfNs.jsPDF !== 'function') {
         alert(t('alerts.jsPdfMissing'));
-        return;
+        return null;
       }
-      const { jsPDF } = jspdfNs;
+      return jspdfNs.jsPDF;
+    }
+
+    async function renderPdfAsPdf(pdf, rects) {
+      const jsPDF = getJsPdf();
       const { mask, alpha } = getMaskSettings();
-      const totalPages = pdfDoc.numPages;
       let pdfOut = null;
 
-      for (let p = 1; p <= totalPages; p++) {
-        const page = await pdfDoc.getPage(p);
+      for (let p = 1; p <= pdf.numPages; p++) {
+        const page = await pdf.getPage(p);
         const baseViewport = page.getViewport({ scale: 1 });
         const exportViewport = page.getViewport({ scale: EXPORT_RENDER_SCALE });
 
@@ -1486,10 +1820,7 @@
         pageCanvas.height = exportViewport.height;
         const pctx = pageCanvas.getContext('2d');
         await page.render({ canvasContext: pctx, viewport: exportViewport }).promise;
-
-        const rects = rectsByPage[p] || [];
-        const rectScale = getRectScaleForExport(EXPORT_RENDER_SCALE);
-        paintMaskRects(pctx, rects, mask, alpha, rectScale);
+        paintMaskRects(pctx, rects[p], mask, alpha, pageCanvas.width, pageCanvas.height);
 
         const pageWidth = baseViewport.width;
         const pageHeight = baseViewport.height;
@@ -1509,59 +1840,45 @@
 
         const img = pageCanvas.toDataURL('image/jpeg', EXPORT_IMAGE_QUALITY);
         pdfOut.addImage(img, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+        page.cleanup?.();
       }
 
-      if (!pdfOut) return;
-      const blob = pdfOut.output('blob');
-      triggerDownload(blob, buildAnonName(currentFileName, '.pdf'));
+      return pdfOut ? pdfOut.output('blob') : null;
     }
 
-    async function exportPdfAsZip() {
-      if (!pdfDoc) return;
-      const JSZipCtor = window.JSZip;
-      if (typeof JSZipCtor !== 'function') {
-        alert(t('alerts.jsZipMissing'));
-        return;
-      }
-      const zip = new JSZipCtor();
+    async function addPdfPagesAsPng(pdf, rects, zipTarget) {
       const { mask, alpha } = getMaskSettings();
-      const totalPages = pdfDoc.numPages;
+      const totalPages = pdf.numPages;
       const padding = String(totalPages).length;
 
       for (let p = 1; p <= totalPages; p++) {
-        const page = await pdfDoc.getPage(p);
+        const page = await pdf.getPage(p);
         const exportViewport = page.getViewport({ scale: EXPORT_RENDER_SCALE });
         const pageCanvas = document.createElement('canvas');
         pageCanvas.width = exportViewport.width;
         pageCanvas.height = exportViewport.height;
         const ctx = pageCanvas.getContext('2d');
         await page.render({ canvasContext: ctx, viewport: exportViewport }).promise;
-
-        const rects = rectsByPage[p] || [];
-        const rectScale = getRectScaleForExport(EXPORT_RENDER_SCALE);
-        paintMaskRects(ctx, rects, mask, alpha, rectScale);
+        paintMaskRects(ctx, rects[p], mask, alpha, pageCanvas.width, pageCanvas.height);
 
         const dataUrl = pageCanvas.toDataURL('image/png');
         const base64 = dataUrl.split(',')[1] || '';
         const fileName = `pagina-${String(p).padStart(padding, '0')}.png`;
-        zip.file(fileName, base64, { base64: true });
+        zipTarget.file(fileName, base64, { base64: true });
+        page.cleanup?.();
       }
-
-      const blob = await zip.generateAsync({ type: 'blob' });
-      triggerDownload(blob, buildAnonName(currentFileName, '.zip'));
     }
 
-    async function exportPdfAsSingleImage() {
-      if (!pdfDoc) return;
-      const totalPages = pdfDoc.numPages;
-      if (totalPages === 0) return;
+    async function renderPdfAsSingleImage(pdf, rects) {
+      const totalPages = pdf.numPages;
+      if (totalPages === 0) return { blob: null, lowRes: false };
       const { mask, alpha } = getMaskSettings();
 
       const entries = [];
       let maxWidth = 0;
       let totalHeight = 0;
       for (let p = 1; p <= totalPages; p++) {
-        const page = await pdfDoc.getPage(p);
+        const page = await pdf.getPage(p);
         const viewport = page.getViewport({ scale: 1 });
         entries.push({ pageNumber: p, page, width: viewport.width, height: viewport.height });
         maxWidth = Math.max(maxWidth, viewport.width);
@@ -1579,11 +1896,7 @@
       if (!Number.isFinite(scaleFactor) || scaleFactor <= 0) {
         scaleFactor = 1;
       }
-      const requestedMin = SINGLE_IMAGE_MIN_SCALE;
-      let minScaleNotice = false;
-      if (scaleFactor < requestedMin) {
-        minScaleNotice = true;
-      }
+      const lowRes = scaleFactor < SINGLE_IMAGE_MIN_SCALE;
 
       let exportHeight = Math.floor(totalHeight * scaleFactor) + gapTotal;
       if (exportHeight > SINGLE_IMAGE_CANVAS_LIMIT) {
@@ -1596,10 +1909,6 @@
         }
       }
 
-      if (minScaleNotice) {
-        alert(t('alerts.pngScaleNotice'));
-      }
-
       const canvas = document.createElement('canvas');
       const exportWidth = Math.max(1, Math.floor(maxWidth * scaleFactor));
       canvas.width = Math.max(1, Math.min(exportWidth, SINGLE_IMAGE_CANVAS_LIMIT));
@@ -1609,18 +1918,15 @@
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       let offsetY = 0;
-      const rectScale = getRectScaleForExport(scaleFactor);
       for (let i = 0; i < entries.length; i++) {
-        const { page, pageNumber, width, height } = entries[i];
+        const { page, pageNumber } = entries[i];
         const viewport = page.getViewport({ scale: scaleFactor });
         const renderCanvas = document.createElement('canvas');
         renderCanvas.width = Math.max(1, Math.round(viewport.width));
         renderCanvas.height = Math.max(1, Math.round(viewport.height));
         const rctx = renderCanvas.getContext('2d');
         await page.render({ canvasContext: rctx, viewport }).promise;
-
-        const rects = rectsByPage[pageNumber] || [];
-        paintMaskRects(rctx, rects, mask, alpha, rectScale);
+        paintMaskRects(rctx, rects[pageNumber], mask, alpha, renderCanvas.width, renderCanvas.height);
 
         ctx.drawImage(renderCanvas, 0, offsetY);
         offsetY += renderCanvas.height;
@@ -1631,33 +1937,18 @@
         entries[i].page = null;
       }
 
-      const blob = await canvasToBlob(canvas, 'image/png');
-      if (!blob) {
-        alert(t('alerts.singlePngFail'));
-        return;
-      }
-      triggerDownload(blob, buildAnonName(currentFileName, '.png'));
+      return { blob: await canvasToBlob(canvas, 'image/png'), lowRes };
     }
 
-    async function exportImageAsPng() {
-      if (!imageDoc) return;
+    async function renderImageAsPng(image, rects) {
       const { mask, alpha } = getMaskSettings();
       const canvas = document.createElement('canvas');
-      canvas.width = imageDoc.width;
-      canvas.height = imageDoc.height;
+      canvas.width = image.width;
+      canvas.height = image.height;
       const ctx = canvas.getContext('2d');
-      ctx.drawImage(imageDoc.image, 0, 0, canvas.width, canvas.height);
-
-      const rects = rectsByPage[1] || [];
-      const rectScale = getRectScaleForExport(1);
-      paintMaskRects(ctx, rects, mask, alpha, rectScale);
-
-      const blob = await canvasToBlob(canvas, 'image/png');
-      if (!blob) {
-        alert(t('alerts.imagePngFail'));
-        return;
-      }
-      triggerDownload(blob, buildAnonName(currentFileName, '.png'));
+      ctx.drawImage(image.image, 0, 0, canvas.width, canvas.height);
+      paintMaskRects(ctx, rects[1], mask, alpha, canvas.width, canvas.height);
+      return canvasToBlob(canvas, 'image/png');
     }
 
     function canvasToBlob(canvas, type, quality) {
@@ -1666,14 +1957,14 @@
       });
     }
 
-    function paintMaskRects(ctx, rects, color, alpha, rectScale) {
+    // Los rectángulos guardados van en fracciones del ancho y alto de la página.
+    function paintMaskRects(ctx, rects, color, alpha, width, height) {
       if (!ctx || !Array.isArray(rects) || rects.length === 0) return;
-      const factor = Number.isFinite(rectScale) && rectScale > 0 ? rectScale : 1;
       ctx.save();
       ctx.fillStyle = color;
+      ctx.globalAlpha = alpha;
       for (const rect of rects) {
-        ctx.globalAlpha = alpha;
-        ctx.fillRect(rect.x * factor, rect.y * factor, rect.w * factor, rect.h * factor);
+        ctx.fillRect(rect.x * width, rect.y * height, rect.w * width, rect.h * height);
       }
       ctx.restore();
     }
@@ -1782,9 +2073,6 @@
       exportModeEl.style.display = showSelect ? 'inline-block' : 'none';
       refreshExportModeLabels();
       updateExportButtonLabel();
-      if (type !== 'pdf') {
-        localStorage.removeItem(EXPORT_MODE_KEY);
-      }
       updateExportNotice();
     }
 
@@ -1889,50 +2177,312 @@
       syncViewerHeight();
     }
 
-    async function openDocument(file) {
-      if (!file) return false;
-      const name = (file && file.name) ? file.name : getDefaultDocumentBase();
-      const lowerName = name.toLowerCase();
+    function isPdfFile(file) {
       const type = (file.type || '').toLowerCase();
-      const isPdf = type === 'application/pdf' || lowerName.endsWith('.pdf');
-      const isImage = type.startsWith('image/') || SUPPORTED_IMAGE_REGEX.test(lowerName);
+      return type === 'application/pdf' || (file.name || '').toLowerCase().endsWith('.pdf');
+    }
 
-      if (!isPdf && !isImage) {
+    function isSupportedFile(file) {
+      if (!file) return false;
+      const type = (file.type || '').toLowerCase();
+      return isPdfFile(file) || type.startsWith('image/') || SUPPORTED_IMAGE_REGEX.test((file.name || '').toLowerCase());
+    }
+
+    async function addFiles(fileList) {
+      if (batchExporting) return;
+      const files = Array.from(fileList || []);
+      if (!files.length) return;
+      const valid = files.filter(isSupportedFile);
+      if (!valid.length) {
         alert(t('alerts.invalidFileType'));
-        setFileDropStatus(getDefaultDropText(), false);
-        return false;
+        return;
       }
+      const room = Math.max(0, MAX_DOCUMENTS - documents.length);
+      const accepted = valid
+        .sort((x, y) => (x.name || '').localeCompare(y.name || '', undefined, { numeric: true, sensitivity: 'base' }))
+        .slice(0, room);
+      const messages = [];
+      if (valid.length < files.length) {
+        messages.push(t('docs.invalidSkipped', { count: files.length - valid.length }));
+      }
+      if (accepted.length < valid.length) {
+        messages.push(t('docs.limit', { max: MAX_DOCUMENTS, skipped: valid.length - accepted.length }));
+      }
+      if (messages.length) alert(messages.join('\n'));
+      if (!accepted.length) return;
 
-      if (isPdf) {
-        let arrayBuf;
+      const newDocs = accepted.map((file) => {
+        const type = isPdfFile(file) ? 'pdf' : 'image';
+        return {
+          id: nextDocId++,
+          file,
+          name: file.name || getDefaultDocumentName(type === 'pdf' ? '.pdf' : '.png'),
+          type,
+          rects: {},
+          pageCount: type === 'image' ? 1 : 0,
+          reviewed: false,
+        };
+      });
+      documents.push(...newDocs);
+      renderDocList();
+      await activateDocument(newDocs[0].id);
+    }
+
+    function findDocument(id) {
+      return documents.find((doc) => doc.id === id) || null;
+    }
+
+    function getActiveDocument() {
+      return findDocument(activeDocId);
+    }
+
+    function activateDocument(id) {
+      docQueue = docQueue
+        .then(() => switchToDocument(id))
+        .catch((err) => console.error(err));
+      return docQueue;
+    }
+
+    function activateRelativeDocument(step) {
+      const index = documents.findIndex((doc) => doc.id === activeDocId);
+      const target = documents[index + step];
+      if (target) activateDocument(target.id);
+    }
+
+    async function switchToDocument(id) {
+      const doc = findDocument(id);
+      if (!doc || (id === activeDocId && docType)) return;
+      storeActiveRects();
+      const previousPdf = pdfDoc;
+      let loaded = false;
+      if (doc.type === 'pdf') {
+        let arrayBuf = null;
         try {
-          arrayBuf = await file.arrayBuffer();
+          arrayBuf = await doc.file.arrayBuffer();
         } catch (err) {
           console.error(t('alerts.fileReadErrorLog'), err);
           alert(t('alerts.fileReadFailed'));
-          setFileDropStatus(getDefaultDropText(), false);
-          return false;
         }
-        const loaded = await loadPdfFromArrayBuffer(arrayBuf, name);
-        setFileDropStatus(loaded ? name : getDefaultDropText(), loaded);
-        return loaded;
+        loaded = arrayBuf ? await loadPdfFromArrayBuffer(arrayBuf, doc.name) : false;
+      } else {
+        loaded = await loadImageDocument(doc.file);
       }
+      if (!loaded) {
+        documents = documents.filter((item) => item !== doc);
+        renderDocList();
+        return;
+      }
+      if (previousPdf && previousPdf !== pdfDoc) {
+        previousPdf.destroy();
+      }
+      activeDocId = id;
+      doc.pageCount = pageCount;
+      restoreActiveRects(doc);
+      viewerContainer.scrollTop = 0;
+      renderDocList();
+    }
 
-      const loaded = await loadImageDocument(file);
-      setFileDropStatus(loaded ? name : getDefaultDropText(), loaded);
-      return loaded;
+    function removeDocument(id) {
+      const index = documents.findIndex((doc) => doc.id === id);
+      if (index < 0) return;
+      documents.splice(index, 1);
+      if (id !== activeDocId) {
+        renderDocList();
+        return;
+      }
+      activeDocId = null;
+      const next = documents[index] || documents[index - 1];
+      if (next) {
+        activateDocument(next.id);
+      } else {
+        closeViewer();
+      }
+    }
+
+    function closeAllDocuments() {
+      if (batchExporting || !documents.length) return;
+      storeActiveRects();
+      const hasRects = documents.some((doc) => countDocumentRects(doc) > 0);
+      if (hasRects && !confirm(t('docs.closeAllConfirm'))) return;
+      documents = [];
+      activeDocId = null;
+      closeViewer();
+    }
+
+    function closeViewer() {
+      docQueue = docQueue.then(() => {
+        pdfDoc?.destroy();
+        pdfDoc = null;
+        imageDoc = null;
+        resetViewerState();
+        renderDocList();
+      });
+    }
+
+    // Guarda los rectángulos del documento visible en fracciones de la página,
+    // para no depender del zoom ni del tamaño de cada documento.
+    function storeActiveRects() {
+      const doc = getActiveDocument();
+      if (!doc || !docType) return;
+      const stored = {};
+      for (const [key, list] of Object.entries(rectsByPage)) {
+        const view = pageViews.get(Number(key));
+        if (!view || !Array.isArray(list) || !list.length) continue;
+        const { width, height } = view.overlay;
+        if (!width || !height) continue;
+        stored[key] = list.map((rect) => ({
+          x: rect.x / width,
+          y: rect.y / height,
+          w: rect.w / width,
+          h: rect.h / height,
+        }));
+      }
+      doc.rects = stored;
+    }
+
+    function restoreActiveRects(doc) {
+      rectsByPage = {};
+      for (const [key, list] of Object.entries(doc.rects || {})) {
+        const view = pageViews.get(Number(key));
+        if (!view || !Array.isArray(list)) continue;
+        const { width, height } = view.overlay;
+        rectsByPage[key] = list.map((rect) => ({
+          x: rect.x * width,
+          y: rect.y * height,
+          w: rect.w * width,
+          h: rect.h * height,
+        }));
+      }
+      redrawAllOverlays();
+      updateClearButtonState();
+    }
+
+    function countDocumentRects(doc) {
+      const source = doc.id === activeDocId && docType ? rectsByPage : doc.rects;
+      let total = 0;
+      for (const [key, list] of Object.entries(source || {})) {
+        if (doc.pageCount && Number(key) > doc.pageCount) continue;
+        total += Array.isArray(list) ? list.length : 0;
+      }
+      return total;
+    }
+
+    function copyActivePageRectsToAll() {
+      if (batchExporting || documents.length < 2) return;
+      storeActiveRects();
+      const source = getActiveDocument();
+      const pageRects = source?.rects[activePage] || [];
+      if (!pageRects.length) return;
+      let copied = 0;
+      for (const doc of documents) {
+        if (doc === source) continue;
+        if (doc.pageCount && activePage > doc.pageCount) continue;
+        const list = Array.isArray(doc.rects[activePage]) ? doc.rects[activePage] : [];
+        for (const rect of pageRects) {
+          if (!list.some((other) => isSameRect(other, rect))) {
+            list.push({ ...rect });
+          }
+        }
+        doc.rects[activePage] = list;
+        copied++;
+      }
+      renderDocList();
+      showDocsStatus(t('docs.copyDone', { count: copied }));
+    }
+
+    function isSameRect(a, b) {
+      return ['x', 'y', 'w', 'h'].every((key) => Math.abs(a[key] - b[key]) < COPY_RECT_TOLERANCE);
+    }
+
+    function showDocsStatus(message) {
+      docsStatusEl.textContent = message;
+      clearTimeout(docsStatusTimeout);
+      docsStatusTimeout = setTimeout(() => {
+        docsStatusEl.textContent = '';
+      }, 8000);
+    }
+
+    function renderDocList() {
+      const total = documents.length;
+      const multiple = total > 1;
+      docsSection.hidden = !multiple;
+      btnCopyToAll.hidden = !multiple;
+      btnExportAll.hidden = !multiple;
+      updateCopyToAllState();
+      if (total === 0) {
+        setFileDropStatus(getDefaultDropText(), false);
+      } else if (total === 1) {
+        setFileDropStatus(documents[0].name, true);
+      } else {
+        setFileDropStatus(t('drop.multiple', { count: total }), true);
+      }
+      docListEl.innerHTML = '';
+      if (!multiple) return;
+
+      docsTitleEl.textContent = t('docs.title', { count: total });
+      if (!batchExporting) {
+        btnExportAll.textContent = t('export.all', { count: total });
+      }
+      const activeIndex = documents.findIndex((doc) => doc.id === activeDocId);
+      docPrevBtn.disabled = activeIndex <= 0;
+      docNextBtn.disabled = activeIndex < 0 || activeIndex >= total - 1;
+
+      documents.forEach((doc, index) => {
+        const item = document.createElement('li');
+        item.className = 'docItem';
+        item.dataset.id = String(doc.id);
+        item.classList.toggle('active', doc.id === activeDocId);
+        item.classList.toggle('reviewed', doc.reviewed);
+
+        const openBtn = document.createElement('button');
+        openBtn.type = 'button';
+        openBtn.className = 'docOpen';
+        openBtn.title = doc.name;
+        const indexEl = document.createElement('span');
+        indexEl.className = 'docIndex';
+        indexEl.textContent = String(index + 1);
+        const nameEl = document.createElement('span');
+        nameEl.className = 'docName';
+        nameEl.textContent = doc.name;
+        const metaEl = document.createElement('span');
+        const count = countDocumentRects(doc);
+        metaEl.className = count ? 'docMeta' : 'docMeta pending';
+        const parts = [count === 0 ? t('docs.pending') : (count === 1 ? t('docs.rectOne') : t('docs.rects', { count }))];
+        if (doc.pageCount > 1) parts.push(t('docs.pages', { count: doc.pageCount }));
+        metaEl.textContent = parts.join(' · ');
+        openBtn.append(indexEl, nameEl, metaEl);
+
+        const reviewedLabel = document.createElement('label');
+        reviewedLabel.className = 'docReviewed';
+        reviewedLabel.title = t('docs.reviewedTitle');
+        const reviewedInput = document.createElement('input');
+        reviewedInput.type = 'checkbox';
+        reviewedInput.checked = doc.reviewed;
+        reviewedInput.setAttribute('aria-label', `${t('docs.reviewedTitle')}: ${doc.name}`);
+        reviewedLabel.append(reviewedInput);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'docRemove';
+        removeBtn.textContent = '×';
+        removeBtn.title = t('docs.removeTitle');
+        removeBtn.setAttribute('aria-label', `${t('docs.removeTitle')} ${doc.name}`);
+
+        item.append(openBtn, reviewedLabel, removeBtn);
+        docListEl.appendChild(item);
+      });
+      docListEl.querySelector('.docItem.active')?.scrollIntoView({ block: 'nearest' });
+    }
+
+    function updateCopyToAllState() {
+      const rects = docType ? (rectsByPage[activePage] || []) : [];
+      btnCopyToAll.disabled = batchExporting || documents.length < 2 || rects.length === 0;
     }
 
     async function loadPdfFromArrayBuffer(arrayBuf, fileName = getDefaultDocumentName('.pdf')) {
       const targetName = forceExtension(sanitizeFileName(fileName), '.pdf');
-      const loadingTask = pdfjsLib.getDocument({
-        data: arrayBuf,
-        cMapUrl: './vendor/pdfjs/cmaps/',
-        cMapPacked: true,
-        standardFontDataUrl: './vendor/pdfjs/standard_fonts/'
-      });
       try {
-        pdfDoc = await loadingTask.promise;
+        pdfDoc = await openPdfData(arrayBuf);
       } catch (err) {
         console.error(t('alerts.pdfLoadErrorLog'), err);
         const message = err && err.message ? err.message : String(err);
@@ -1980,28 +2530,38 @@
       return true;
     }
 
+    function openPdfData(arrayBuf) {
+      return pdfjsLib.getDocument({
+        data: arrayBuf,
+        cMapUrl: './vendor/pdfjs/cmaps/',
+        cMapPacked: true,
+        standardFontDataUrl: './vendor/pdfjs/standard_fonts/'
+      }).promise;
+    }
+
+    async function readImageFile(file) {
+      const objectUrl = URL.createObjectURL(file);
+      try {
+        const image = await loadImageElement(objectUrl);
+        const width = image.naturalWidth || image.width;
+        const height = image.naturalHeight || image.height;
+        return { image, width, height };
+      } finally {
+        URL.revokeObjectURL(objectUrl);
+      }
+    }
+
     async function loadImageDocument(file) {
       const fallbackExt = guessImageExtension(file);
-      let objectUrl = '';
-      let image;
+      let loadedImage;
       try {
-        objectUrl = URL.createObjectURL(file);
-        image = await loadImageElement(objectUrl);
+        loadedImage = await readImageFile(file);
       } catch (err) {
         console.error(t('alerts.imageLoadErrorLog'), err);
         alert(t('alerts.imageOpenError'));
-        if (objectUrl) URL.revokeObjectURL(objectUrl);
         return false;
       }
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-      }
-      if (!image) {
-        alert(t('alerts.imageGenericError'));
-        return false;
-      }
-      const width = image.naturalWidth || image.width;
-      const height = image.naturalHeight || image.height;
+      const { image, width, height } = loadedImage;
       if (!width || !height) {
         alert(t('alerts.imageSizeUnknown'));
         return false;
@@ -2154,6 +2714,7 @@
       state.button = 0;
       drawOverlay(pageNumber);
       updateClearButtonState();
+      renderDocList();
     };
 
       overlay.addEventListener('mouseup', endDrawing);
@@ -2179,6 +2740,7 @@
         if (!removed) return;
         drawOverlay(pageNumber);
         updateClearButtonState();
+        renderDocList();
       });
     }
 
@@ -2385,6 +2947,7 @@
       }
       const rects = rectsByPage[activePage] || [];
       btnClearRects.disabled = rects.length === 0;
+      updateCopyToAllState();
     }
 
     function computeScaleForWidth(pageWidth) {
@@ -2674,6 +3237,7 @@
         setFileDropStatus(getDefaultDropText(), false);
       }
       updateSearchStatus();
+      renderDocList();
     }
 
     function getDefaultDropText() {
@@ -2683,6 +3247,10 @@
     function getDefaultDocumentBase() {
       const base = t('defaults.document');
       return base || 'documento';
+    }
+
+    function getDefaultDocumentsBase() {
+      return t('defaults.documents') || 'documentos';
     }
 
     function getDefaultDocumentName(ext = '.pdf') {
