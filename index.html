@@ -343,7 +343,7 @@
             <span>·</span>
             <span class="privacyPopoverWrap">
               <button id="privacyToggle" type="button" class="footerLinkButton" data-i18n="footer.privacyLabel" aria-expanded="false">Privacidad</button>
-              <span id="privacyMessage" class="privacyPopover" hidden data-i18n="footer.privacyMessage">Los archivos se procesan localmente en este navegador. Solo se recogen estadísticas de uso agregadas propias y no se envían archivos ni datos a terceros.</span>
+              <span id="privacyMessage" class="privacyPopover" hidden data-i18n="footer.privacyMessage">Los archivos se procesan localmente en este navegador. La aplicación no recoge estadísticas de uso ni envía archivos ni datos a ningún servidor.</span>
             </span>
           </span>
         </p>
@@ -378,10 +378,6 @@
     const SUPPORTED_LOCALES = ['es', 'ca', 'gl', 'eu', 'en'];
     const FALLBACK_LOCALE = 'es';
     const LOCALE_INTL = { es: 'es-ES', ca: 'ca-ES', gl: 'gl-ES', eu: 'eu-ES', en: 'en' };
-    const ANALYTICS_SITE_ID = 'anonim-pdf';
-    const ANALYTICS_ENDPOINT = 'https://bilateria.org/app/estadistica/anonim-pdf/track.php';
-    const ANALYTICS_COOLDOWN_MS = 30 * 60 * 1000;
-    const ANALYTICS_LAST_VISIT_KEY = `analytics:last-visit:${ANALYTICS_SITE_ID}`;
     const TRANSLATIONS = {
       es: {
         'app.windowTitle': `Anonimizador de PDF e imágenes — cliente`,
@@ -419,7 +415,7 @@
         'details.credits.owner': `Anonimizador de PDF · © 2025-2026 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Recurso: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Licencia del código: AGPL v3</a>`,
         'footer.privacyLabel': `Privacidad`,
-        'footer.privacyMessage': `Los archivos se procesan localmente en este navegador. Solo se recogen estadísticas de uso agregadas propias y no se envían archivos ni datos a terceros.`,
+        'footer.privacyMessage': `Los archivos se procesan localmente en este navegador. La aplicación no recoge estadísticas de uso ni envía archivos ni datos a ningún servidor.`,
         'viewer.zoom.label': `Zoom:`,
         'viewer.zoom.inputLabel': `Porcentaje de zoom`,
         'viewer.zoom.fit': `Ajustar ancho`,
@@ -525,7 +521,7 @@
         'details.credits.owner': `Anonimitzador de PDF · © 2025-2026 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Recurs: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Llicència del codi: AGPL v3</a>`,
         'footer.privacyLabel': `Privacitat`,
-        'footer.privacyMessage': `Els fitxers es processen localment en aquest navegador. Només es recullen estadístiques d'ús agregades pròpies i no s'envien fitxers ni dades a tercers.`,
+        'footer.privacyMessage': `Els fitxers es processen localment en aquest navegador. L'aplicació no recull estadístiques d'ús ni envia fitxers ni dades a cap servidor.`,
         'viewer.zoom.label': `Zoom:`,
         'viewer.zoom.inputLabel': `Percentatge de zoom`,
         'viewer.zoom.fit': `Ajusta l'amplada`,
@@ -631,7 +627,7 @@
         'details.credits.owner': `Anonimizador de PDF · © 2025-2026 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Recurso: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Licenza do código: AGPL v3</a>`,
         'footer.privacyLabel': `Privacidade`,
-        'footer.privacyMessage': `Os ficheiros procésanse localmente neste navegador. Só se recollen estatísticas de uso agregadas propias e non se envían ficheiros nin datos a terceiros.`,
+        'footer.privacyMessage': `Os ficheiros procésanse localmente neste navegador. A aplicación non recolle estatísticas de uso nin envía ficheiros nin datos a ningún servidor.`,
         'viewer.zoom.label': `Zoom:`,
         'viewer.zoom.inputLabel': `Porcentaxe de zoom`,
         'viewer.zoom.fit': `Axustar ancho`,
@@ -737,7 +733,7 @@
         'details.credits.owner': `PDF eta irudien anonimizatzailea · © 2025-2026 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Baliabidea: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Kodearen lizentzia: AGPL v3</a>`,
         'footer.privacyLabel': `Pribatutasuna`,
-        'footer.privacyMessage': `Fitxategiak nabigatzaile honetan lokalki prozesatzen dira. Erabilera-estatistika agregatu propioak baino ez dira biltzen, eta ez zaie hirugarrenei fitxategirik edo daturik bidaltzen.`,
+        'footer.privacyMessage': `Fitxategiak nabigatzaile honetan lokalki prozesatzen dira. Aplikazioak ez du erabilera-estatistikarik biltzen, eta ez du fitxategirik edo daturik inongo zerbitzarira bidaltzen.`,
         'viewer.zoom.label': `Zooma:`,
         'viewer.zoom.inputLabel': `Zoomaren ehunekoa`,
         'viewer.zoom.fit': `Doitu zabalera`,
@@ -843,7 +839,7 @@
         'details.credits.owner': `PDF & Image Anonymizer · © 2025-2026 <a href="https://bilateria.es" style="color:inherit; text-decoration:underline;">Juan José de Haro</a> · Resource: <a href="https://github.com/jjdeharo/anonim-pdf" style="color:inherit; text-decoration:underline;">github.com/jjdeharo/anonim-pdf</a>`,
         'details.credits.license': `<a href="./LICENSE.txt" style="color:inherit; text-decoration:underline;">Code license: AGPL v3</a>`,
         'footer.privacyLabel': `Privacy`,
-        'footer.privacyMessage': `Files are processed locally in this browser. The app only collects its own aggregated usage statistics and does not send files or data to third parties.`,
+        'footer.privacyMessage': `Files are processed locally in this browser. The app does not collect usage statistics and does not send files or data to any server.`,
         'viewer.zoom.label': `Zoom:`,
         'viewer.zoom.inputLabel': `Zoom percentage`,
         'viewer.zoom.fit': `Fit width`,
@@ -1052,7 +1048,6 @@
     setFileDropStatus(getDefaultDropText(), false);
     resetExportControls();
     renderFooterState();
-    scheduleAnalyticsLoad();
 
     const storedControlsHidden = localStorage.getItem(CONTROLS_HIDDEN_KEY) === 'true';
     setControlsHidden(storedControlsHidden);
@@ -3140,65 +3135,6 @@
       }
       privacyMessageEl.style.left = left + 'px';
       privacyMessageEl.style.top = Math.max(margin, top) + 'px';
-    }
-
-    function shouldTrackAnalyticsVisit() {
-      try {
-        const lastVisit = parseInt(localStorage.getItem(ANALYTICS_LAST_VISIT_KEY) || '0', 10);
-        if (lastVisit && (Date.now() - lastVisit) < ANALYTICS_COOLDOWN_MS) {
-          return false;
-        }
-        localStorage.setItem(ANALYTICS_LAST_VISIT_KEY, String(Date.now()));
-      } catch (err) {
-        // storage might be unavailable
-      }
-      return true;
-    }
-
-    function scheduleAnalyticsLoad() {
-      const start = () => loadAnalyticsSummary();
-      // Un <script async> inyectado antes de que se dispare «load» retrasa ese
-      // evento hasta que la peticion termina. Si el servidor de estadisticas se
-      // cuelga, «load» no llegaria a dispararse nunca. Por eso se espera siempre
-      // a «load» antes de programar nada.
-      const programar = () => {
-        if ('requestIdleCallback' in window) {
-          window.requestIdleCallback(start, { timeout: 1800 });
-        } else {
-          window.setTimeout(start, 700);
-        }
-      };
-      if (document.readyState === 'complete') {
-        programar();
-      } else {
-        window.addEventListener('load', programar, { once: true });
-      }
-    }
-
-    function loadAnalyticsSummary() {
-      const trackVisit = shouldTrackAnalyticsVisit();
-      const callbackName = `anonimPdfAnalytics_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-      const script = document.createElement('script');
-      let finished = false;
-      const cleanup = () => {
-        if (finished) return;
-        finished = true;
-        window.clearTimeout(timeoutId);
-        try {
-          delete window[callbackName];
-        } catch (err) {
-          window[callbackName] = undefined;
-        }
-        script.remove();
-      };
-      const timeoutId = window.setTimeout(cleanup, 4000);
-      window[callbackName] = (payload) => {
-        cleanup();
-      };
-      script.async = true;
-      script.onerror = cleanup;
-      script.src = `${ANALYTICS_ENDPOINT}?callback=${encodeURIComponent(callbackName)}&referrer=${encodeURIComponent(document.referrer || '')}${trackVisit ? '' : '&summary_only=1'}`;
-      document.head.appendChild(script);
     }
 
     function refreshExportModeLabels() {

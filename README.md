@@ -37,7 +37,11 @@ Durante el desarrollo puedes servir el proyecto con `npx http-server .` o abrir 
 
 ## Privacidad
 
-Los archivos se procesan localmente en este navegador. La aplicación puede mostrar un resumen discreto de uso y recoger estadísticas agregadas propias para medir su utilización, sin almacenar direcciones IP ni enviar archivos a terceros.
+Los archivos se procesan localmente en este navegador. La aplicación no recoge estadísticas de uso ni envía archivos ni datos a ningún servidor: pdf.js, jsPDF y JSZip se sirven desde la carpeta `vendor/` del propio sitio. Solo guarda en el navegador (`localStorage`) sus preferencias: idioma, zoom, formato de exportación, nombres de archivo y panel oculto o visible.
+
+## Decisiones de diseño
+
+Las decisiones de arquitectura están documentadas en [`docs/adr/`](docs/adr/).
 
 ## Licencias
 
